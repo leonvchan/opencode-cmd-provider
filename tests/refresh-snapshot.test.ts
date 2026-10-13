@@ -43,10 +43,14 @@ const PACKAGE_MD_WITH_OFF =
   "|---|---|---|---|---|---|---|\n" +
   "| `claude-sonnet-5` | Claude Sonnet 5 | 1M | off, high, max | $2/$10 · cache $0.2 (write $2.5) | Pro and above | best |\n"
 
+// ASTRA deliberately carries the upstream `file` modality (as
+// command-code@1.81.0 reports for meta/muse-wonder-1.0): the parser accepts
+// it, and the generated facts must stay in the runtime text + image
+// vocabulary (see the first test's MODEL_INPUT_MODALITIES assertion).
 const CLI_BUNDLE =
   'const models={SONNET:{name:"Claude Sonnet 5",id:"claude-sonnet-5",inputModalities:["text","image"],contextWindow:2e5},' +
   'FLASH:{name:"DeepSeek V4 Flash (latest)",id:"deepseek/deepseek-v4-flash",inputModalities:["text"],contextWindow:1e6},' +
-  'ASTRA:{name:"GPT-6 Astra",id:"gpt-6-astra",inputModalities:["text","image"],contextWindow:105e4}}'
+  'ASTRA:{name:"GPT-6 Astra",id:"gpt-6-astra",inputModalities:["text","image","file"],contextWindow:105e4}}'
 
 // Async spawn: the in-process mock server must keep serving while the child
 // process fetches the catalog, so the parent event loop cannot be blocked.
@@ -140,6 +144,11 @@ run([
           "claude-sonnet-5": ["low", "medium", "high", "xhigh", "max"],
           "gpt-6-astra": ["low", "medium", "high", "xhigh", "max"],
         })
+        // The `file` modality on ASTRA's CLI entry is normalized away: the
+        // facts map advertises the runtime vocabulary only.
+        const astra = mod.MODEL_SNAPSHOT.find((m) => m.id === "gpt-6-astra")
+        assert(astra, "gpt-6-astra must ship")
+        assertEqual(factsMod.MODEL_INPUT_MODALITIES[astra.id], ["text", "image"])
       } finally {
         await mock.close()
         await rm(dir, { recursive: true, force: true })

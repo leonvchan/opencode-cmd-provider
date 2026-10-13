@@ -1,3 +1,88 @@
+## 2.2.7 - 2026-10-13
+
+**Fix — usage reporting splits the reasoning share out of the completion
+total.** Both transports billed the reasoning share _inside_ the completion
+total and read it from nowhere, so every reasoning-bearing turn stored
+`reasoning: 0` with the whole billed completion counted as visible output —
+reasoning-inflated figures in session rows, `opencode stats` and the stored
+per-message/session usage
+([#289](https://github.com/rashidrazak/opencode-cmd-provider/pull/289),
+[#291](https://github.com/rashidrazak/opencode-cmd-provider/pull/291), closes
+[#290](https://github.com/rashidrazak/opencode-cmd-provider/issues/290)). The
+release also lands the catalog refreshed on 2026-10-13 to
+`command-code@1.81.0` — `meta/muse-wonder-1.0` joins the Snapshot, facts,
+classification and deals, and the modality parser accepts upstream's new
+`file` value — plus the npm minor/patch dependency group and the
+`actions/setup-node` bump.
+
+### Fixes
+
+- **The usage split reports reasoning separately from visible text, on both
+  transports**
+  ([#289](https://github.com/rashidrazak/opencode-cmd-provider/pull/289),
+  [#291](https://github.com/rashidrazak/opencode-cmd-provider/pull/291),
+  closes
+  [#290](https://github.com/rashidrazak/opencode-cmd-provider/issues/290)):
+  neither dialect's reasoning field was read — OpenAI-compatible payloads
+  carry the share in `completion_tokens_details.reasoning_tokens`, Anthropic
+  ones in `usage.output_tokens_details.thinking_tokens` — so the mappers
+  reported the whole billed completion as text with `reasoning: 0`.
+  `reasoningFrom()` now reads both spellings (plus the camelCase spelling
+  `totalUsage` normalises to, and a numeric string), consulting every detail
+  container rather than only the first present; `text` becomes the exclusive
+  remainder (`max(0, total − reasoning)`) and `total` stays the billed total,
+  so nothing is double-charged. A negative total clamps at `0`,
+  `normalizeUsageSplit()` repairs a split that does not sum to its total at
+  the model boundary, and the zeroed-usage fallbacks (#171) keep marking
+  synthesized usage unchanged. Transport-level tests carry both dialects end
+  to end through `providerRunStream`; `docs/TECHNICAL.md` describes the split.
+
+- **The modality parser accepts upstream's `file` input value**
+  ([#292](https://github.com/rashidrazak/opencode-cmd-provider/pull/292)):
+  `command-code@1.81.0` reports `inputModalities: ["text","image","file"]` for
+  `meta/muse-wonder-1.0`, which the whitelist rejected, failing the refresh
+  loudly. `file` is accepted as upstream vocabulary and normalized out of the
+  parsed arrays — the runtime forwards text + image parts only — so the
+  generated facts stay typed `("text" | "image")[]`.
+
+### Model catalog
+
+- **FACTS_PACKAGE_VERSION**: `1.79.2` → `1.81.0`
+- **FACTS_LAST_REFRESHED**: `2026-10-08` → `2026-10-13`
+- Membership 87 → 88: upstream added `meta/muse-wonder-1.0` (Muse Wonder) —
+  1,050,000 context, efforts low/medium/high/xhigh, input $4 / output $20 per
+  1M tokens (cache read $0.2, cache write $0). No other record changes; the
+  2026-10-12 re-capture (at `1.79.2`) was a date-stamp-only refresh.
+- `muse-wonder-1-0` joins the pinned models-page slug map, so the page's
+  Context/rates/Caps evidence feeds the refresh; the eight docs-ahead slugs
+  stay unpinned (models.md is the membership authority).
+
+| Model                  | Change | Before | After                                          |
+| ---------------------- | ------ | ------ | ---------------------------------------------- |
+| `meta/muse-wonder-1.0` | added  | —      | Snapshot + facts + classification + deals rows |
+
+### Reasoning classification
+
+- **CLASSIFICATION_LAST_REFRESHED**: `2026-10-08` → `2026-10-13`
+- `meta/muse-wonder-1.0` enters as reasoning-capable; classification writes 88 entries (no pending bucket).
+
+### Deals catalog
+
+- **DEAL_LAST_REFRESHED**: `2026-10-08` → `2026-10-13`
+- `meta/muse-wonder-1.0` lands with the `premium` tier and a goat 20 / pro 20 allowance; no other record changes.
+- Deals and RSC fixtures re-captured from the live docs pages.
+
+### Dependencies
+
+- The npm minor/patch group
+  ([#287](https://github.com/rashidrazak/opencode-cmd-provider/pull/287)):
+  `@ai-sdk/provider` 4.0.20 → 4.0.26, `@opentui/core` 0.5.12 → 0.5.17,
+  `@opentui/solid` 0.5.12 → 0.5.17, `@opencode-ai/plugin` 1.18.33 → 1.18.35,
+  `@secretlint/secretlint-rule-pattern` 13.0.6 → 13.0.7, `@types/node` 26.6.3
+  → 26.6.4, `acorn` 8.18.0 → 8.19.0, `secretlint` 13.0.6 → 13.0.7.
+- `actions/setup-node` 7.0.0 → 7.1.0 across the workflows
+  ([#286](https://github.com/rashidrazak/opencode-cmd-provider/pull/286)).
+
 ## 2.2.6 - 2026-10-09
 
 ### Model catalog

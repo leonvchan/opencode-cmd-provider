@@ -59,6 +59,7 @@ export const MODEL_REASONING_CAPABILITY: Readonly<Record<string, boolean>> = {
   "google/gemini-3.6-flash": true,
   "google/gemini-3.7-flash": true,
   "google/gemini-3.8-flash": true,
+  "google/gemini-4-argon": true,
   "gpt-5.3-codex": true,
   "gpt-5.4": true,
   "gpt-5.4-mini": true,

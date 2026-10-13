@@ -6,9 +6,9 @@
 // parse from the CLI bundle (dist/cli.mjs). Regenerate with
 // `npm run refresh:snapshot`.
 
-export const FACTS_SOURCE_URL = "https://unpkg.com/command-code@1.81.0/dist/bundled/command-code-knowledge/reference/models.md"
-export const MODALITIES_SOURCE_URL = "https://unpkg.com/command-code@1.81.0/dist/cli.mjs"
-export const FACTS_PACKAGE_VERSION = "1.81.0"
+export const FACTS_SOURCE_URL = "https://unpkg.com/command-code@1.82.0/dist/bundled/command-code-knowledge/reference/models.md"
+export const MODALITIES_SOURCE_URL = "https://unpkg.com/command-code@1.82.0/dist/cli.mjs"
+export const FACTS_PACKAGE_VERSION = "1.82.0"
 export const FACTS_LAST_REFRESHED = "2026-10-13"
 
 export const MODEL_EFFORTS: Readonly<Record<string, readonly string[]>> = {
@@ -55,6 +55,7 @@ export const MODEL_EFFORTS: Readonly<Record<string, readonly string[]>> = {
   "gpt-5.4": ["low","medium","high","xhigh"],
   "gpt-5.3-codex": ["low","medium","high","xhigh"],
   "gpt-5.4-mini": ["low","medium","high"],
+  "google/gemini-4-argon": ["low","medium","high"],
   "google/gemini-3.8-flash": ["low","medium","high"],
   "google/gemini-3.7-flash": ["low","medium","high"],
   "google/gemini-3.6-flash": ["low","medium","high"],
@@ -148,6 +149,7 @@ export const MODEL_COSTS: Readonly<
   "gpt-5.4": { input: 2.5, output: 15, cacheRead: 0.25, cacheWrite: 0 },
   "gpt-5.3-codex": { input: 2, output: 8, cacheRead: 0.5, cacheWrite: 0 },
   "gpt-5.4-mini": { input: 0.75, output: 4.5, cacheRead: 0.075, cacheWrite: 0 },
+  "google/gemini-4-argon": { input: 2, output: 10, cacheRead: 0.1, cacheWrite: 0 },
   "google/gemini-3.8-flash": { input: 1.5, output: 7.5, cacheRead: 0.15, cacheWrite: 0 },
   "google/gemini-3.7-flash": { input: 1.5, output: 7.5, cacheRead: 0.15, cacheWrite: 0.08334 },
   "google/gemini-3.6-flash": { input: 1.5, output: 7.5, cacheRead: 0.15, cacheWrite: 0 },
@@ -198,6 +200,7 @@ export const MODEL_INPUT_MODALITIES: Readonly<
   "google/gemini-3.6-flash": ["text","image"],
   "google/gemini-3.7-flash": ["text","image"],
   "google/gemini-3.8-flash": ["text","image"],
+  "google/gemini-4-argon": ["text","image"],
   "gpt-5.3-codex": ["text","image"],
   "gpt-5.4": ["text","image"],
   "gpt-5.4-mini": ["text","image"],

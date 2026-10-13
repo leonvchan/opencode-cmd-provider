@@ -10,7 +10,16 @@
 // therefore handled by Acorn rather than by a lookahead regex.
 import * as acorn from "acorn"
 
-const VALID_MODALITIES = new Set(["text", "image"])
+// Upstream's inputModalities vocabulary. `file` is legitimate upstream
+// vocabulary (command-code@1.81.0 reports it for meta/muse-wonder-1.0) and
+// must not fail the refresh — a parser red is reserved for genuinely unknown
+// values. It is accepted but never advertised: the runtime converter forwards
+// text + image parts only (a non-image `file` part is rejected, and
+// `attachment` is deliberately unset), so the generated facts stay typed
+// ("text" | "image")[] and returned arrays are normalized to
+// RUNTIME_MODALITIES.
+const UPSTREAM_MODALITIES = new Set(["text", "image", "file"])
+const RUNTIME_MODALITIES = new Set(["text", "image"])
 
 function walk(node, visit) {
   if (!node || typeof node !== "object") return
@@ -76,11 +85,13 @@ function parseModalities(node, modelId) {
     throw new Error(`inputModalities for ${modelId} contains duplicates`)
   }
   for (const modality of modalities) {
-    if (!VALID_MODALITIES.has(modality)) {
+    if (!UPSTREAM_MODALITIES.has(modality)) {
       throw new Error(`inputModalities for ${modelId} contains unsupported value ${modality}`)
     }
   }
-  return modalities
+  // `file` is upstream vocabulary the runtime cannot deliver (text + image
+  // parts only) — accepted above, then dropped from the advertised set.
+  return modalities.filter((modality) => RUNTIME_MODALITIES.has(modality))
 }
 
 /**
@@ -88,10 +99,13 @@ function parseModalities(node, modelId) {
  *
  * `modelIds` includes text-only entries so the refresh step can report
  * which package-membership models lack CLI evidence (a pending report,
- * never a failure since issue #133 — the CLI bundle is enrichment).
+ * never a failure since issue #133 — the CLI bundle is enrichment); an
+ * entry whose only non-text modality is `file` still counts as
+ * CLI-covered.
  * `modalities`
  * contains only image-capable entries, matching the provider's existing
- * text-only fallback behavior.
+ * text-only fallback behavior, each normalized to the runtime vocabulary
+ * (`file` accepted, never advertised).
  *
  * `contextWindows` maps every catalog id that carries a `contextWindow`
  * literal to its value (1e6 etc). This is the context ladder's second step

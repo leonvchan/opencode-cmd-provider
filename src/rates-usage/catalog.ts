@@ -92,6 +92,7 @@ export const MODEL_DEALS: Readonly<Record<string, ModelDeals>> = {
   "meta/muse-spark-1.2-contributor": { tier: "opensource", free: false, allowance: {"goat":20,"pro":30} },
   "meta/muse-spark-1.3": { tier: "premium", benchmark: {"intelligence":48.1}, free: false, allowance: {"goat":20,"pro":30} },
   "meta/muse-spark-1.3-contributor": { tier: "premium", free: false, allowance: {"goat":20,"pro":30} },
+  "meta/muse-wonder-1.0": { tier: "premium", free: false, allowance: {"goat":20,"pro":20} },
   "MiniMaxAI/MiniMax-M2.5": { tier: "opensource", benchmark: {"intelligence":22.8}, free: false, allowance: {"goat":20,"pro":30} },
   "MiniMaxAI/MiniMax-M2.7": { tier: "opensource", benchmark: {"intelligence":22.8}, free: false, allowance: {"goat":20,"pro":30} },
   "MiniMaxAI/MiniMax-M3": { tier: "opensource", discount: {"pct":50}, was: {"input":0.6,"output":2.4,"cacheRead":0.12}, now: {"input":0.3,"output":1.2,"cacheRead":0.06}, benchmark: {"intelligence":29.2}, free: false, allowance: {"goat":47,"pro":57} },
@@ -160,5 +161,5 @@ export const PLAN_CATALOG: Readonly<Record<PlanId, PlanInfo>> = {
 }
 
 export const DEAL_SOURCE_URL = "https://commandcode.ai/docs/resources/pricing-limits"
-export const DEAL_LAST_REFRESHED = "2026-10-12"
+export const DEAL_LAST_REFRESHED = "2026-10-13"
 export const DEAL_PACKAGE_VERSION = "docs"

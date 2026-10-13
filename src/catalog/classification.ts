@@ -20,7 +20,7 @@ export const CLASSIFICATION_SOURCE_URLS: ReadonlyArray<string> = [
   "https://commandcode.ai/docs/plans/pro",
 ]
 
-export const CLASSIFICATION_LAST_REFRESHED = "2026-10-12"
+export const CLASSIFICATION_LAST_REFRESHED = "2026-10-13"
 
 // Active capability overrides. Empty = upstream data is truth.
 // Every entry requires a written justification naming the upstream
@@ -78,6 +78,7 @@ export const MODEL_REASONING_CAPABILITY: Readonly<Record<string, boolean>> = {
   "meta/muse-spark-1.2-contributor": true,
   "meta/muse-spark-1.3": true,
   "meta/muse-spark-1.3-contributor": true,
+  "meta/muse-wonder-1.0": true,
   "MiniMaxAI/MiniMax-M2.5": false,
   "MiniMaxAI/MiniMax-M2.7": false,
   "MiniMaxAI/MiniMax-M3": true,

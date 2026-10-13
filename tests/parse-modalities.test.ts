@@ -81,6 +81,31 @@ run([
   ],
 
   [
+    "accepts the upstream file modality and normalizes it out of the advertised set",
+    () => {
+      // command-code@1.81.0 reports `file` for meta/muse-wonder-1.0 — known
+      // upstream vocabulary, not a shape change. The runtime forwards text +
+      // image parts only, so the returned array is normalized.
+      const result = parseInputModalities(
+        `const models = [{id: "file/model", name: "File", inputModalities: ["text", "image", "file"]}]`,
+      )
+      assertEqual(result.modelIds.has("file/model"), true)
+      assertEqual(result.modalities, { "file/model": ["text", "image"] })
+    },
+  ],
+
+  [
+    "a file-only model is CLI-covered but stays out of the image map",
+    () => {
+      const result = parseInputModalities(
+        `const models = [{id: "docs/model", name: "Docs", inputModalities: ["text", "file"]}]`,
+      )
+      assertEqual(result.modelIds.has("docs/model"), true)
+      assertEqual(result.modalities, {})
+    },
+  ],
+
+  [
     "rejects unsupported modality values",
     () => {
       throws(
@@ -89,6 +114,13 @@ run([
             `const model = {id: "bad/model", name: "Bad", inputModalities: ["audio"]}`,
           ),
         /unsupported value audio/,
+      )
+      throws(
+        () =>
+          parseInputModalities(
+            `const model = {id: "bad/model", name: "Bad", inputModalities: ["text", "video"]}`,
+          ),
+        /unsupported value video/,
       )
     },
   ],

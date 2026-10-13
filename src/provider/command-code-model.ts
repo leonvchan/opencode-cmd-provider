@@ -37,6 +37,7 @@ import {
   finishCarriesReportedUsage,
   finishIsPauseTurn,
   addAiSdkUsage,
+  normalizeUsageSplit,
   ProviderStreamError,
   type StreamEventParser,
 } from "./stream.js"
@@ -502,7 +503,10 @@ export class CommandCodeLanguageModel implements LanguageModelV3 {
         outputTokens: { total: 0, text: 0, reasoning: 0 },
       }
     }
-    return { content, finishReason, usage, warnings: [] }
+    // The one boundary where usage reaches the host: whatever transport and
+    // mapper produced it, the output split is consistent by the time the host
+    // reads it.
+    return { content, finishReason, usage: normalizeUsageSplit(usage), warnings: [] }
   }
 
   async doStream(
@@ -1265,8 +1269,12 @@ export class CommandCodeLanguageModel implements LanguageModelV3 {
               // Anthropic: message_delta) is incorporated — and, for a resumed
               // turn, with every continuation's usage folded in (issue #172).
               // The transport only reports that usage: OpenCode prices the turn
-              // from the cost rates the model advertises (issue #176).
-              const finish = { ...heldFinish, usage: accumulateUsage(heldFinish.usage) }
+              // from the cost rates the model advertises (issue #176). The split
+              // is normalized here, at the boundary the host reads.
+              const finish = {
+                ...heldFinish,
+                usage: normalizeUsageSplit(accumulateUsage(heldFinish.usage)),
+              }
               emit(finish)
             } else {
               // A terminal that carries no finish part — the legacy

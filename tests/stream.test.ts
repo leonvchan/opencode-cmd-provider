@@ -12,6 +12,7 @@ import {
   ccUsageToAiSdkUsage,
   openAIUsageToAiSdkUsage,
   anthropicUsageToAiSdkUsage,
+  normalizeUsageSplit,
   createOpenAIStreamParser,
   createAnthropicStreamParser,
   finishIsPauseTurn,
@@ -573,6 +574,154 @@ run([
           output_tokens: 8,
         })?.inputTokens,
         expected,
+      )
+    },
+  ],
+
+  [
+    "reasoning_tokens are split out of completion_tokens (vercel/ai contract)",
+    () => {
+      // The gateway bills reasoning inside `completion_tokens`, so reporting it
+      // all as text with `reasoning: 0` inflates the visible-output figure in
+      // every dashboard. The AI SDK contract splits the two: text is the
+      // exclusive remainder. Reference: vercel/ai
+      // convert-openai-compatible-chat-usage.ts.
+      const usage = openAIUsageToAiSdkUsage({
+        prompt_tokens: 1000,
+        completion_tokens: 100,
+        completion_tokens_details: { reasoning_tokens: 30 },
+      })
+      assertEqual(usage?.outputTokens, { total: 100, text: 70, reasoning: 30 })
+    },
+  ],
+
+  [
+    "a payload without reasoning details reports every completion token as text",
+    () => {
+      // Back-compat: a gateway that never sends the field must map exactly as
+      // it did before the split existed.
+      const usage = openAIUsageToAiSdkUsage({ prompt_tokens: 10, completion_tokens: 50 })
+      assertEqual(usage?.outputTokens, { total: 50, text: 50, reasoning: 0 })
+    },
+  ],
+
+  [
+    "reasoning_tokens above completion_tokens clamps text to zero",
+    () => {
+      // The billed total is the ceiling: an over-reporting gateway must not
+      // yield a negative text figure, and `text + reasoning` stays `total`.
+      const usage = openAIUsageToAiSdkUsage({
+        prompt_tokens: 10,
+        completion_tokens: 40,
+        completion_tokens_details: { reasoning_tokens: 60 },
+      })
+      assertEqual(usage?.outputTokens, { total: 40, text: 0, reasoning: 40 })
+    },
+  ],
+
+  [
+    "malformed reasoning details fall back to all-text without throwing",
+    () => {
+      const malformed = [
+        { completion_tokens_details: "not-an-object" },
+        { completion_tokens_details: null },
+        { completion_tokens_details: { reasoning_tokens: "many" } },
+        { completion_tokens_details: { reasoning_tokens: -5 } },
+        { completion_tokens_details: { reasoning_tokens: null } },
+      ]
+      for (const details of malformed) {
+        const usage = openAIUsageToAiSdkUsage({
+          prompt_tokens: 10,
+          completion_tokens: 50,
+          ...details,
+        })
+        assertEqual(usage?.outputTokens, { total: 50, text: 50, reasoning: 0 })
+      }
+    },
+  ],
+
+  [
+    "a numeric-string reasoning_tokens is coerced, not discarded",
+    () => {
+      // Billing metadata arrives untyped at this boundary, so a gateway that
+      // quotes the count as a string still gets it attributed.
+      const usage = openAIUsageToAiSdkUsage({
+        prompt_tokens: 10,
+        completion_tokens: 100,
+        completion_tokens_details: { reasoning_tokens: "30" },
+      })
+      assertEqual(usage?.outputTokens, { total: 100, text: 70, reasoning: 30 })
+    },
+  ],
+
+  [
+    "the legacy totalUsage path finds reasoning under its own spellings",
+    () => {
+      // The legacy codec normalises to camelCase — `totalUsage` carries
+      // `inputTokenDetails`, which this mapper already reads — so the output
+      // side is read under that spelling as well as the raw wire one. The
+      // CommandCode wire is uncaptured (T6-CC), so an absent field stays a
+      // no-op rather than a wrong attribution.
+      const spellings = [
+        { completion_tokens_details: { reasoning_tokens: 30 } },
+        { outputTokenDetails: { reasoningTokens: 30 } },
+      ]
+      for (const details of spellings) {
+        const usage = ccUsageToAiSdkUsage({
+          totalUsage: { inputTokens: 100, outputTokens: 100, ...details },
+        })
+        assertEqual(usage?.outputTokens, { total: 100, text: 70, reasoning: 30 })
+      }
+    },
+  ],
+
+  [
+    "normalizeUsageSplit repairs an output split that does not sum to the total",
+    () => {
+      // Defense in depth at the model boundary: whichever mapper produced the
+      // usage, the invariant `text + reasoning == total` holds when the host
+      // reads it. A mapper that reports the inclusive total as text *and* a
+      // reasoning count would otherwise bill the reasoning twice.
+      assertEqual(
+        normalizeUsageSplit({
+          inputTokens: { total: 10, noCache: 10, cacheRead: 0, cacheWrite: 0 },
+          outputTokens: { total: 100, text: 100, reasoning: 30 },
+        }).outputTokens,
+        { total: 100, text: 70, reasoning: 30 },
+      )
+    },
+  ],
+
+  [
+    "normalizeUsageSplit leaves a consistent split untouched",
+    () => {
+      const usage = {
+        inputTokens: { total: 10, noCache: 10, cacheRead: 0, cacheWrite: 0 },
+        outputTokens: { total: 100, text: 70, reasoning: 30 },
+      }
+      assertEqual(normalizeUsageSplit(usage), usage)
+      // The zeroed fallback (#171) is already consistent and stays byte-equal.
+      assertEqual(
+        normalizeUsageSplit({
+          inputTokens: { total: 0, noCache: 0, cacheRead: 0, cacheWrite: 0 },
+          outputTokens: { total: 0, text: 0, reasoning: 0 },
+        }).outputTokens,
+        { total: 0, text: 0, reasoning: 0 },
+      )
+    },
+  ],
+
+  [
+    "normalizeUsageSplit clamps an over-reported reasoning count",
+    () => {
+      // The billed total is the ceiling: text never goes negative and reasoning
+      // never exceeds what was billed.
+      assertEqual(
+        normalizeUsageSplit({
+          inputTokens: { total: 10, noCache: 10, cacheRead: 0, cacheWrite: 0 },
+          outputTokens: { total: 40, text: 0, reasoning: 60 },
+        }).outputTokens,
+        { total: 40, text: 0, reasoning: 40 },
       )
     },
   ],

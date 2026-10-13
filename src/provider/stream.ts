@@ -228,7 +228,7 @@ export function ccUsageToAiSdkUsage(
   const outputTokens = numberValue(usage.outputTokens) ?? 0
   return {
     inputTokens: { total: totalInput, noCache, cacheRead, cacheWrite },
-    outputTokens: { total: outputTokens, text: outputTokens, reasoning: 0 },
+    outputTokens: outputTokensFor(outputTokens, reasoningFrom(usage)),
   }
 }
 
@@ -383,9 +383,56 @@ function asRecord(value: unknown): Record<string, unknown> | undefined {
   return isRecord(value) ? value : undefined
 }
 
-function extractUsageTokens(
-  usage: unknown,
-): { input: number; output: number; cacheRead: number; cacheWrite: number } | undefined {
+/**
+ * The reasoning share of one usage report, read defensively. The value arrives
+ * as untrusted billing metadata, so an absent, malformed, negative or
+ * non-finite field falls back to `0` — a metadata field must never break a
+ * live stream. `totalUsage` normalises its input block to camelCase
+ * (`inputTokenDetails`), so the output side is read under that spelling as well
+ * as the raw wire one.
+ */
+function reasoningFrom(rec: Record<string, unknown>): number {
+  const details = asRecord(rec.completion_tokens_details) ?? asRecord(rec.outputTokenDetails)
+  const candidate = details?.reasoning_tokens ?? details?.reasoningTokens ?? rec.reasoningTokens
+  const value =
+    numberValue(candidate) ??
+    (typeof candidate === "string" && candidate.trim() !== "" ? Number(candidate) : undefined)
+  return value !== undefined && Number.isFinite(value) && value > 0 ? value : 0
+}
+
+/**
+ * Splits a billed completion total into its text and reasoning shares
+ * (`vercel/ai`'s openai-compatible usage contract): the gateway bills reasoning
+ * *inside* `completion_tokens`, so text is the exclusive remainder and the two
+ * always sum back to the total. An over-reported reasoning count clamps to the
+ * total rather than driving text negative.
+ */
+function outputTokensFor(total: number, reasoning: number): LanguageModelV3Usage["outputTokens"] {
+  const clamped = Math.min(reasoning, Math.max(0, total))
+  return { total, text: Math.max(0, total - clamped), reasoning: clamped }
+}
+
+/** The `normalizeUsageSplit` contract: `text + reasoning == total` on the
+ * output block. The reported count is the signal and `text` the derived
+ * remainder (the `vercel/ai` contract), so a split that does not sum is repaired
+ * by re-deriving text — never by inventing a reasoning count the mapper did not
+ * report. A mapper that dropped the field is already self-consistent and is
+ * left alone; this guards the double-count, not the discovery. */
+export function normalizeUsageSplit(usage: LanguageModelV3Usage): LanguageModelV3Usage {
+  const { total, text, reasoning } = usage.outputTokens
+  if (total === undefined || (text ?? 0) + (reasoning ?? 0) === total) return usage
+  return { ...usage, outputTokens: outputTokensFor(total, reasoning ?? 0) }
+}
+
+function extractUsageTokens(usage: unknown):
+  | {
+      input: number
+      output: number
+      reasoning: number
+      cacheRead: number
+      cacheWrite: number
+    }
+  | undefined {
   const rec = asRecord(usage)
   if (!rec) return undefined
   // OpenAI: prompt_tokens / completion_tokens / total_tokens, with the cached
@@ -433,7 +480,7 @@ function extractUsageTokens(
       "outputTokens" in rec
     if (!hasAnyKey) return undefined
   }
-  return { input, output, cacheRead, cacheWrite }
+  return { input, output, reasoning: reasoningFrom(rec), cacheRead, cacheWrite }
 }
 
 /**
@@ -461,7 +508,7 @@ function usageToAiSdk(
       cacheRead: tokens.cacheRead,
       cacheWrite: tokens.cacheWrite,
     },
-    outputTokens: { total: tokens.output, text: tokens.output, reasoning: 0 },
+    outputTokens: outputTokensFor(tokens.output, tokens.reasoning),
   }
 }
 

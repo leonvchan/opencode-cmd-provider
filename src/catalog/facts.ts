@@ -6,10 +6,10 @@
 // parse from the CLI bundle (dist/cli.mjs). Regenerate with
 // `npm run refresh:snapshot`.
 
-export const FACTS_SOURCE_URL = "https://unpkg.com/command-code@1.79.2/dist/bundled/command-code-knowledge/reference/models.md"
-export const MODALITIES_SOURCE_URL = "https://unpkg.com/command-code@1.79.2/dist/cli.mjs"
-export const FACTS_PACKAGE_VERSION = "1.79.2"
-export const FACTS_LAST_REFRESHED = "2026-10-12"
+export const FACTS_SOURCE_URL = "https://unpkg.com/command-code@1.81.0/dist/bundled/command-code-knowledge/reference/models.md"
+export const MODALITIES_SOURCE_URL = "https://unpkg.com/command-code@1.81.0/dist/cli.mjs"
+export const FACTS_PACKAGE_VERSION = "1.81.0"
+export const FACTS_LAST_REFRESHED = "2026-10-13"
 
 export const MODEL_EFFORTS: Readonly<Record<string, readonly string[]>> = {
   "deepseek/deepseek-v4-pro": ["high","max"],
@@ -67,6 +67,7 @@ export const MODEL_EFFORTS: Readonly<Record<string, readonly string[]>> = {
   "meta/muse-spark-1.2-contributor": ["low","medium","high","xhigh"],
   "meta/muse-spark-1.3": ["low","medium","high","xhigh","max"],
   "meta/muse-spark-1.3-contributor": ["low","medium","high","xhigh"],
+  "meta/muse-wonder-1.0": ["low","medium","high","xhigh"],
   "xai/grok-4.5": ["low","medium","high"],
   "xai/grok-4.6": ["low","medium","high","xhigh"],
   "xai/grok-4.7": ["low","medium","high","xhigh"],
@@ -159,6 +160,7 @@ export const MODEL_COSTS: Readonly<
   "meta/muse-spark-1.2-contributor": { input: 0.1, output: 0.2, cacheRead: 0.002, cacheWrite: 0 },
   "meta/muse-spark-1.3": { input: 1.25, output: 4.25, cacheRead: 0.15, cacheWrite: 0 },
   "meta/muse-spark-1.3-contributor": { input: 0.1, output: 0.2, cacheRead: 0.002, cacheWrite: 0 },
+  "meta/muse-wonder-1.0": { input: 4, output: 20, cacheRead: 0.2, cacheWrite: 0 },
   "xai/grok-4.5": { input: 2, output: 6, cacheRead: 0.5, cacheWrite: 0 },
   "xai/grok-4.6": { input: 2, output: 6, cacheRead: 0.5, cacheWrite: 0 },
   "xai/grok-4.7": { input: 2, output: 6, cacheRead: 0.5, cacheWrite: 0 },
@@ -212,6 +214,7 @@ export const MODEL_INPUT_MODALITIES: Readonly<
   "meta/muse-spark-1.2-contributor": ["text","image"],
   "meta/muse-spark-1.3": ["text","image"],
   "meta/muse-spark-1.3-contributor": ["text","image"],
+  "meta/muse-wonder-1.0": ["text","image"],
   "mistral/mistral-large-4": ["text","image"],
   "moonshotai/Kimi-K2.5": ["text","image"],
   "moonshotai/Kimi-K2.6": ["text","image"],

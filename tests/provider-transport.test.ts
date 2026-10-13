@@ -876,6 +876,96 @@ run([
     },
   ],
   [
+    "provider: OpenAI transport splits reasoning_tokens out of the completion total (issue #290)",
+    async () => {
+      // Reproduction at the transport boundary, the OpenAI half of #290: the
+      // billed `completion_tokens` is split into its visible text and its
+      // `completion_tokens_details.reasoning_tokens` share, so the host's
+      // displayed visible-output figure (`total − reasoning`) is the turn's
+      // actual answer rather than the reasoning-inclusive total (#289).
+      await withEnv("pro", async () => {
+        const mock = await startMockCc({
+          chatCompletionsStream: [
+            openAIChunk("Hello"),
+            openAIFinishChunk({
+              prompt_tokens: 20,
+              completion_tokens: 40,
+              total_tokens: 60,
+              completion_tokens_details: { reasoning_tokens: 12 },
+            }),
+          ],
+        })
+        try {
+          const provider = createCommandCode({ apiKey: "k", baseURL: mock.url })
+          const parts = await collect(provider.languageModel("gpt-5.6-terra"), [
+            { role: "user", content: "hi" },
+          ])
+          assertEqual(mock.hits.chatCompletions, 1)
+          const finish = parts.find((p) => p.type === "finish") as {
+            usage?: {
+              inputTokens: { total: number; noCache: number; cacheRead: number; cacheWrite: number }
+              outputTokens: { total: number; text: number; reasoning: number }
+            }
+          }
+          assertEqual(finish.usage, {
+            inputTokens: { total: 20, noCache: 20, cacheRead: 0, cacheWrite: 0 },
+            outputTokens: { total: 40, text: 28, reasoning: 12 },
+          })
+        } finally {
+          await mock.close()
+        }
+      })
+    },
+  ],
+  [
+    "provider: Anthropic transport splits thinking_tokens out of output_tokens (issue #290)",
+    async () => {
+      // Live /provider/v1/messages (2026-10-13): the gateway forwards the
+      // field — a `claude-haiku-5-5` turn's final `message_delta` carried
+      // `usage: { input_tokens: 65, output_tokens: 29,
+      // output_tokens_details: { thinking_tokens: 23 } }`, the capture this
+      // mock replays verbatim. `output_tokens` is the inclusive,
+      // authoritative total and `thinking_tokens` the reasoning share — the
+      // field opencode's own bundled Anthropic provider maps to
+      // `reasoningTokens`. The input buckets are #178's mapping, so this pins
+      // the split through `providerRunStream` — the seam the #158/#178 cache
+      // tests pin — on the transport Claude turns arrive on.
+      const mock = await startMockCc({
+        messagesStream: [
+          { type: "content_block_start", index: 0, content_block: { type: "text", text: "" } },
+          anthropicContentBlockDelta("$0.05"),
+          { type: "content_block_stop", index: 0 },
+          anthropicMessageDelta({
+            input_tokens: 65,
+            output_tokens: 29,
+            output_tokens_details: { thinking_tokens: 23 },
+          }),
+          { type: "message_stop" },
+        ],
+      })
+      try {
+        const parts = await collect(
+          createCommandCode({ apiKey: "k", baseURL: mock.url }).languageModel("claude-haiku-5-5"),
+          [{ role: "user", content: "hi" }],
+        )
+        assertEqual(mock.hits.messages, 1)
+        const finish = parts.find((p) => p.type === "finish") as {
+          usage?: {
+            inputTokens: { total: number; noCache: number; cacheRead: number; cacheWrite: number }
+            outputTokens: { total: number; text: number; reasoning: number }
+          }
+        }
+        assert(finish, "finish present")
+        assertEqual(finish.usage, {
+          inputTokens: { total: 65, noCache: 65, cacheRead: 0, cacheWrite: 0 },
+          outputTokens: { total: 29, text: 6, reasoning: 23 },
+        })
+      } finally {
+        await mock.close()
+      }
+    },
+  ],
+  [
     "provider: doGenerate non-streaming returns same content and usage as doStream aggregated",
     async () => {
       await withEnv("max", async () => {

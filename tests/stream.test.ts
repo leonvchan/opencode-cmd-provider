@@ -12,6 +12,7 @@ import {
   ccUsageToAiSdkUsage,
   openAIUsageToAiSdkUsage,
   anthropicUsageToAiSdkUsage,
+  anthropicEventToStreamPart,
   normalizeUsageSplit,
   createOpenAIStreamParser,
   createAnthropicStreamParser,
@@ -672,6 +673,199 @@ run([
         })
         assertEqual(usage?.outputTokens, { total: 100, text: 70, reasoning: 30 })
       }
+    },
+  ],
+
+  [
+    "Anthropic thinking_tokens are split out of output_tokens (issue #290)",
+    () => {
+      // Anthropic nests the reasoning share in
+      // `output_tokens_details.thinking_tokens`, with `output_tokens` the
+      // inclusive, authoritative total — the field opencode's own bundled
+      // Anthropic provider maps to `reasoningTokens`. Unread, every Claude
+      // turn reports its whole billed completion as visible text (#289's bug
+      // on this dialect).
+      const usage = anthropicUsageToAiSdkUsage({
+        input_tokens: 13,
+        cache_read_input_tokens: 7142,
+        output_tokens: 50,
+        output_tokens_details: { thinking_tokens: 20 },
+      })
+      assertEqual(usage?.inputTokens, {
+        total: 7155,
+        noCache: 13,
+        cacheRead: 7142,
+        cacheWrite: 0,
+      })
+      assertEqual(usage?.outputTokens, { total: 50, text: 30, reasoning: 20 })
+    },
+  ],
+
+  [
+    "anthropicEventToStreamPart splits thinking_tokens on a message_delta (issue #290)",
+    () => {
+      // The Anthropic terminal: a `message_delta` carries the turn's usage
+      // and the finish part reports it as the model boundary sees it.
+      assertEqual(
+        anthropicEventToStreamPart({
+          type: "message_delta",
+          delta: { stop_reason: "end_turn" },
+          usage: {
+            input_tokens: 10,
+            output_tokens: 50,
+            output_tokens_details: { thinking_tokens: 20 },
+          },
+        }),
+        [
+          {
+            type: "finish",
+            finishReason: { unified: "stop", raw: "end_turn" },
+            usage: {
+              inputTokens: { total: 10, noCache: 10, cacheRead: 0, cacheWrite: 0 },
+              outputTokens: { total: 50, text: 30, reasoning: 20 },
+            },
+          },
+        ],
+      )
+    },
+  ],
+
+  [
+    "createAnthropicStreamParser carries the thinking split through the streamed message_delta (issue #290)",
+    () => {
+      // The streamed Claude path: a signed thinking block, then the answer,
+      // then the usage-bearing `message_delta` (which #174's suppression keeps
+      // from being replaced by the bare `message_stop`). The finish OpenCode
+      // reads must carry the split, not the inclusive total as text.
+      const parser = createAnthropicStreamParser()
+      const events = [
+        {
+          type: "content_block_start",
+          index: 0,
+          content_block: { type: "thinking", thinking: "" },
+        },
+        {
+          type: "content_block_delta",
+          index: 0,
+          delta: { type: "thinking_delta", thinking: "Weighing" },
+        },
+        {
+          type: "content_block_delta",
+          index: 0,
+          delta: { type: "signature_delta", signature: "sig" },
+        },
+        { type: "content_block_stop", index: 0 },
+        { type: "content_block_start", index: 1, content_block: { type: "text", text: "" } },
+        { type: "content_block_delta", index: 1, delta: { type: "text_delta", text: "Answer" } },
+        { type: "content_block_stop", index: 1 },
+        {
+          type: "message_delta",
+          delta: { stop_reason: "end_turn" },
+          usage: {
+            input_tokens: 10,
+            output_tokens: 50,
+            output_tokens_details: { thinking_tokens: 20 },
+          },
+        },
+        { type: "message_stop" },
+      ]
+      const parts = events.flatMap((event) => parser(event))
+      const finishes = parts.filter((part) => part.type === "finish")
+      assertEqual(finishes.length, 1, "exactly one finish")
+      assertEqual((finishes[0] as { usage: unknown }).usage, {
+        inputTokens: { total: 10, noCache: 10, cacheRead: 0, cacheWrite: 0 },
+        outputTokens: { total: 50, text: 30, reasoning: 20 },
+      })
+    },
+  ],
+
+  [
+    "the legacy totalUsage path reads the Anthropic thinking spelling too (issue #290)",
+    () => {
+      // `totalUsage` normalises `output_tokens_details` to `outputTokenDetails`
+      // (beside the `inputTokenDetails` block), so the thinking count is read
+      // under that camel spelling as well. The lookup is defensive: this
+      // legacy wire is uncaptured (T6-CC) and upstream sums no reasoning
+      // bucket there, so an absent field stays a no-op rather than a wrong
+      // attribution.
+      const usage = ccUsageToAiSdkUsage({
+        totalUsage: {
+          inputTokens: 100,
+          outputTokens: 50,
+          outputTokenDetails: { thinkingTokens: 20 },
+        },
+      })
+      assertEqual(usage?.outputTokens, { total: 50, text: 30, reasoning: 20 })
+    },
+  ],
+
+  [
+    "both reasoning detail containers are consulted, not the first one present (issue #290)",
+    () => {
+      // #289's fallback chain bound to the first record (`??`), so a payload
+      // carrying an empty `completion_tokens_details` beside a populated
+      // `outputTokenDetails` read the count as zero. Every container is
+      // consulted, in either order and under either dialect's key.
+      const cases = [
+        { completion_tokens_details: {}, outputTokenDetails: { reasoningTokens: 30 } },
+        { outputTokenDetails: {}, completion_tokens_details: { reasoning_tokens: 30 } },
+        { output_tokens_details: {}, completion_tokens_details: { reasoning_tokens: 30 } },
+        { completion_tokens_details: {}, output_tokens_details: { thinking_tokens: 30 } },
+      ]
+      for (const details of cases) {
+        const usage = openAIUsageToAiSdkUsage({
+          prompt_tokens: 10,
+          completion_tokens: 100,
+          ...details,
+        })
+        assertEqual(usage?.outputTokens, { total: 100, text: 70, reasoning: 30 })
+      }
+    },
+  ],
+
+  [
+    "a negative completion total clamps to zero, keeping the split invariant (issue #290)",
+    () => {
+      // #289 clamped the reasoning share only, so a malformed negative
+      // `completion_tokens` produced `{ total: -5, text: 0, reasoning: 0 }` —
+      // a split that does not sum to its total. A billed token count can
+      // never be negative: the total clamps at zero and the split follows.
+      for (const details of [
+        {},
+        { completion_tokens_details: { reasoning_tokens: 3 } },
+        { completion_tokens_details: { reasoning_tokens: 30 } },
+      ]) {
+        const usage = openAIUsageToAiSdkUsage({
+          prompt_tokens: 10,
+          completion_tokens: -5,
+          ...details,
+        })
+        assertEqual(usage?.outputTokens, { total: 0, text: 0, reasoning: 0 })
+      }
+      assertEqual(
+        normalizeUsageSplit({
+          inputTokens: { total: 10, noCache: 10, cacheRead: 0, cacheWrite: 0 },
+          outputTokens: { total: -5, text: -3, reasoning: -2 },
+        }).outputTokens,
+        { total: 0, text: 0, reasoning: 0 },
+      )
+    },
+  ],
+
+  [
+    "a numeric-string token count is coerced across every bucket (issue #290)",
+    () => {
+      // #289 coerced the reasoning bucket only, so a gateway quoting its
+      // counts attributed reasoning against siblings read as zero. One rule
+      // for every token bucket: a numeric string is a count.
+      const usage = openAIUsageToAiSdkUsage({
+        prompt_tokens: "1000",
+        completion_tokens: "100",
+        prompt_tokens_details: { cached_tokens: "600" },
+        completion_tokens_details: { reasoning_tokens: "30" },
+      })
+      assertEqual(usage?.inputTokens, { total: 1000, noCache: 400, cacheRead: 600, cacheWrite: 0 })
+      assertEqual(usage?.outputTokens, { total: 100, text: 70, reasoning: 30 })
     },
   ],
 

@@ -18,10 +18,14 @@
 //     (with id + argsTextDelta as delta), then a final tool-call part
 //   - finishReason is { unified, raw }
 //   - usage is nested { inputTokens: { total, noCache, cacheRead, cacheWrite },
-//     outputTokens: { total } } — `total` is cache-inclusive per AI SDK v3
-//     convention (how the bundled Anthropic provider maps usage); `noCache`
-//     carries the fresh-only remainder so downstream context usage and cost
-//     display stay correct (issue #36).
+//     outputTokens: { total, text, reasoning } } — `total` is cache-inclusive
+//     per AI SDK v3 convention (how the bundled Anthropic provider maps
+//     usage); `noCache` carries the fresh-only remainder so downstream context
+//     usage and cost display stay correct (issue #36); the billed completion
+//     total is split into its text and reasoning shares because the gateway
+//     bills reasoning *inside* the total — OpenAI's
+//     `completion_tokens_details.reasoning_tokens`, Anthropic's
+//     `output_tokens_details.thinking_tokens` (issues #289, #290).
 import type {
   LanguageModelV3StreamPart,
   LanguageModelV3Usage,
@@ -220,12 +224,12 @@ export function ccUsageToAiSdkUsage(
   const usage = event.totalUsage
   if (!isRecord(usage)) return undefined
   const details = isRecord(usage.inputTokenDetails) ? usage.inputTokenDetails : undefined
-  const totalInput = numberValue(usage.inputTokens) ?? 0
-  const cacheRead = numberValue(details?.cacheReadTokens) ?? 0
-  const cacheWrite = numberValue(details?.cacheWriteTokens) ?? 0
-  const explicitNoCache = numberValue(details?.noCacheTokens)
+  const totalInput = tokenCount(usage.inputTokens) ?? 0
+  const cacheRead = tokenCount(details?.cacheReadTokens) ?? 0
+  const cacheWrite = tokenCount(details?.cacheWriteTokens) ?? 0
+  const explicitNoCache = tokenCount(details?.noCacheTokens)
   const noCache = explicitNoCache ?? Math.max(0, totalInput - cacheRead - cacheWrite)
-  const outputTokens = numberValue(usage.outputTokens) ?? 0
+  const outputTokens = tokenCount(usage.outputTokens) ?? 0
   return {
     inputTokens: { total: totalInput, noCache, cacheRead, cacheWrite },
     outputTokens: outputTokensFor(outputTokens, reasoningFrom(usage)),
@@ -384,32 +388,75 @@ function asRecord(value: unknown): Record<string, unknown> | undefined {
 }
 
 /**
+ * A token count read from billing metadata, where the value arrives untyped.
+ * A numeric string is a count — some gateways quote them — and anything else
+ * malformed (absent, non-numeric text, `NaN`/`Infinity`) is no count at all.
+ * One rule for every bucket: the reasoning share is not the only count a
+ * gateway may quote, and a coercion only it understood would attribute
+ * reasoning against siblings read as zero (issue #290).
+ */
+function tokenCount(value: unknown): number | undefined {
+  if (typeof value === "number") return Number.isFinite(value) ? value : undefined
+  if (typeof value === "string" && value.trim() !== "") {
+    const parsed = Number(value)
+    return Number.isFinite(parsed) ? parsed : undefined
+  }
+  return undefined
+}
+
+/**
  * The reasoning share of one usage report, read defensively. The value arrives
  * as untrusted billing metadata, so an absent, malformed, negative or
  * non-finite field falls back to `0` — a metadata field must never break a
- * live stream. `totalUsage` normalises its input block to camelCase
- * (`inputTokenDetails`), so the output side is read under that spelling as well
- * as the raw wire one.
+ * live stream.
+ *
+ * The wire spells the share per dialect: OpenAI nests it in
+ * `completion_tokens_details.reasoning_tokens`, Anthropic in
+ * `output_tokens_details.thinking_tokens` (the field opencode's own bundled
+ * Anthropic provider maps to `reasoningTokens`). The legacy codec's
+ * `totalUsage` normalises the Anthropic container to camelCase —
+ * `inputTokenDetails` beside `outputTokenDetails` — so that spelling is read
+ * too, as is the top-level `reasoningTokens` alias. Every container is
+ * consulted, not just the first one present: a payload carrying both must not
+ * hide the count under the second (issue #290). The first count found wins —
+ * a mixed-dialect payload's conflicting shares are not reconciled.
  */
 function reasoningFrom(rec: Record<string, unknown>): number {
-  const details = asRecord(rec.completion_tokens_details) ?? asRecord(rec.outputTokenDetails)
-  const candidate = details?.reasoning_tokens ?? details?.reasoningTokens ?? rec.reasoningTokens
-  const value =
-    numberValue(candidate) ??
-    (typeof candidate === "string" && candidate.trim() !== "" ? Number(candidate) : undefined)
-  return value !== undefined && Number.isFinite(value) && value > 0 ? value : 0
+  const containers = [
+    asRecord(rec.completion_tokens_details),
+    asRecord(rec.output_tokens_details),
+    asRecord(rec.outputTokenDetails),
+  ]
+  const candidates: unknown[] = []
+  for (const details of containers) {
+    candidates.push(
+      details?.reasoning_tokens,
+      details?.reasoningTokens,
+      details?.thinking_tokens,
+      details?.thinkingTokens,
+    )
+  }
+  candidates.push(rec.reasoningTokens)
+  for (const candidate of candidates) {
+    const value = tokenCount(candidate)
+    if (value !== undefined && value > 0) return value
+  }
+  return 0
 }
 
 /**
  * Splits a billed completion total into its text and reasoning shares
  * (`vercel/ai`'s openai-compatible usage contract): the gateway bills reasoning
- * *inside* `completion_tokens`, so text is the exclusive remainder and the two
- * always sum back to the total. An over-reported reasoning count clamps to the
- * total rather than driving text negative.
+ * *inside* the completion total, so text is the exclusive remainder and the two
+ * always sum back to the total. Both shares clamp into `[0, total]` — the total
+ * itself included, since a billed token count can never be negative — so an
+ * over-reported reasoning count or a malformed negative total still satisfies
+ * the invariant rather than driving a share negative (issue #290).
  */
 function outputTokensFor(total: number, reasoning: number): LanguageModelV3Usage["outputTokens"] {
-  const clamped = Math.min(reasoning, Math.max(0, total))
-  return { total, text: Math.max(0, total - clamped), reasoning: clamped }
+  const safeTotal = Math.max(0, total)
+  const clamped = Math.min(Math.max(0, reasoning), safeTotal)
+  return { total: safeTotal, text: safeTotal - clamped, reasoning: clamped }
 }
 
 /** The `normalizeUsageSplit` contract: `text + reasoning == total` on the
@@ -417,10 +464,13 @@ function outputTokensFor(total: number, reasoning: number): LanguageModelV3Usage
  * remainder (the `vercel/ai` contract), so a split that does not sum is repaired
  * by re-deriving text — never by inventing a reasoning count the mapper did not
  * report. A mapper that dropped the field is already self-consistent and is
- * left alone; this guards the double-count, not the discovery. */
+ * left alone; this guards the double-count, not the discovery. The total is a
+ * billed count and can never be negative, so a negative reported total is
+ * repairable even when the reported buckets sum to it (issue #290). */
 export function normalizeUsageSplit(usage: LanguageModelV3Usage): LanguageModelV3Usage {
   const { total, text, reasoning } = usage.outputTokens
-  if (total === undefined || (text ?? 0) + (reasoning ?? 0) === total) return usage
+  if (total === undefined) return usage
+  if (total >= 0 && (text ?? 0) + (reasoning ?? 0) === total) return usage
   return { ...usage, outputTokens: outputTokensFor(total, reasoning ?? 0) }
 }
 
@@ -440,32 +490,34 @@ function extractUsageTokens(usage: unknown):
   // prompt_cache_hit_tokens at the top level).
   // Anthropic: input_tokens / output_tokens / cache_read_input_tokens / cache_creation_input_tokens
   // Generic: inputTokens / outputTokens / input_tokens etc.
+  // Every count is read through `tokenCount`, so a gateway that quotes its
+  // counts as numeric strings is attributed uniformly (issue #290).
   const input =
-    numberValue(rec.prompt_tokens) ??
-    numberValue(rec.input_tokens) ??
-    numberValue(rec.inputTokens) ??
-    numberValue(rec.promptTokens) ??
+    tokenCount(rec.prompt_tokens) ??
+    tokenCount(rec.input_tokens) ??
+    tokenCount(rec.inputTokens) ??
+    tokenCount(rec.promptTokens) ??
     0
   const output =
-    numberValue(rec.completion_tokens) ??
-    numberValue(rec.output_tokens) ??
-    numberValue(rec.outputTokens) ??
-    numberValue(rec.completionTokens) ??
+    tokenCount(rec.completion_tokens) ??
+    tokenCount(rec.output_tokens) ??
+    tokenCount(rec.outputTokens) ??
+    tokenCount(rec.completionTokens) ??
     0
   // Explicit top-level cache fields win; the OpenAI nested detail and the
   // DeepSeek top-level alias are the last resorts (issue #158).
   const promptDetails = asRecord(rec.prompt_tokens_details)
   const cacheRead =
-    numberValue(rec.cache_read_input_tokens) ??
-    numberValue(rec.cacheReadTokens) ??
-    numberValue(rec.cacheRead) ??
-    numberValue(promptDetails?.cached_tokens) ??
-    numberValue(rec.prompt_cache_hit_tokens) ??
+    tokenCount(rec.cache_read_input_tokens) ??
+    tokenCount(rec.cacheReadTokens) ??
+    tokenCount(rec.cacheRead) ??
+    tokenCount(promptDetails?.cached_tokens) ??
+    tokenCount(rec.prompt_cache_hit_tokens) ??
     0
   const cacheWrite =
-    numberValue(rec.cache_creation_input_tokens) ??
-    numberValue(rec.cacheWriteTokens) ??
-    numberValue((rec as Record<string, unknown>).cacheWrite) ??
+    tokenCount(rec.cache_creation_input_tokens) ??
+    tokenCount(rec.cacheWriteTokens) ??
+    tokenCount((rec as Record<string, unknown>).cacheWrite) ??
     0
   // If nothing meaningful, signal undefined so caller can fallback
   if (input === 0 && output === 0 && cacheRead === 0 && cacheWrite === 0) {

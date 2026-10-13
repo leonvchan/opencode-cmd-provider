@@ -610,6 +610,16 @@ cost — which does **not** mean Command Code bills the request at zero. Check t
 current [Command Code pricing](https://commandcode.ai/docs/resources/pricing-limits)
 before relying on the displayed value.
 
+The usage the transport reports splits the billed completion total the way the
+AI SDK contract expects: `outputTokens.total` is the billed total, `reasoning`
+the reasoning share the wire reported (OpenAI's
+`completion_tokens_details.reasoning_tokens`, Anthropic's
+`output_tokens_details.thinking_tokens`), and `text` the exclusive remainder.
+OpenCode prices `total` and derives the displayed visible-output figure as
+`total − reasoning`, so the reasoning share is counted once: session rows and
+dashboards show the turn's actual visible answer instead of the
+reasoning-inflated figure (issues #289, #290).
+
 ## Environment variables
 
 Credentials:

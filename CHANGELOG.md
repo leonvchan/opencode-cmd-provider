@@ -1,3 +1,38 @@
+## 2.2.8 - 2026-10-14
+
+### Model catalog
+
+- **FACTS_PACKAGE_VERSION**: `1.81.0` → `1.82.0`
+- Membership 88 → 89: upstream added `google/gemini-4-argon` (Gemini 4
+  Argon) — 1M context, efforts low/medium/high, input $2 / output $10 per
+  1M tokens (cache read $0.1, cache write $0), text + image input. No
+  other record changes.
+- `gemini-4-argon` is a docs-ahead page slug the pinned models-page map
+  does not carry; it stays unpinned (models.md is the membership
+  authority). The pinned slug map is otherwise unchanged.
+
+| Model                   | Change | Before | After                                          |
+| ----------------------- | ------ | ------ | ---------------------------------------------- |
+| `google/gemini-4-argon` | added  | —      | Snapshot + facts + classification + deals rows |
+
+### Reasoning classification
+
+- `google/gemini-4-argon` enters as reasoning-capable; classification
+  writes 89 entries (no pending bucket).
+
+### Deals catalog
+
+- `google/gemini-4-argon` lands with the `premium` tier and a goat 20 /
+  pro 20 allowance.
+- `deepseek/deepseek-v4.1-flash` allowance `60`/`70` → `100`/`100`
+  (goat/pro); tier, benchmark and peak/off-peak rates unchanged.
+- Deals and RSC fixtures re-captured from the live docs pages.
+
+| Model                          | Change    | Before            | After                     |
+| ------------------------------ | --------- | ----------------- | ------------------------- |
+| `google/gemini-4-argon`        | added     | —                 | premium, goat 20 / pro 20 |
+| `deepseek/deepseek-v4.1-flash` | allowance | goat: 60, pro: 70 | goat: 100, pro: 100       |
+
 ## 2.2.7 - 2026-10-13
 
 **Fix — usage reporting splits the reasoning share out of the completion

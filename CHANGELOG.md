@@ -1,3 +1,62 @@
+## 2.2.9 - 2026-10-16
+
+**Fix — the catalog refresh parses command-code@1.82.3 and later again.**
+1.82.3 added a catalog response parser that rebuilds model records from
+local bindings (`{model:{id:n,contextWindow:r,inputModalities:l}}`). The
+CLI modalities parser's scope-blind constant lookup resolved the minified
+`n` to an unrelated top-level `"auto"`, so `refresh-snapshot` failed with
+`inputModalities for auto must be an array of strings` and the scheduled
+catalog refresh went red on 2026-10-15 and 2026-10-16. Objects whose
+`inputModalities` is an identifier or member expression are now skipped
+as runtime records before their `contextWindow` is recorded; every
+catalog entry carries an array literal, and a non-array literal still
+fails loudly
+([#298](https://github.com/rashidrazak/opencode-cmd-provider/pull/298)).
+
+### Model catalog
+
+- **FACTS_PACKAGE_VERSION**: `1.82.0` → `1.82.5`
+- Membership 89 → 92: upstream added `Qwen/Qwen3.8-Max-Prime`,
+  `nvidia/nemotron-3.5-super-vl`, `meta/muse-spark-open` and
+  `stealth/cat-jam:free`, and removed
+  `inclusionai/ling-3.0-flash-sante:free`.
+- `inclusionai/ling-3.1-flash:free` is now the paid
+  `inclusionai/ling-3.1-flash` (input $0.3 / output $0.9 per 1M tokens,
+  cache read $0.06).
+- The pinned slug map reports `ling-3-0-flash-sante-free`,
+  `pixel-canary` and `space-bunny-alpha` as pending (pinned ids no longer
+  in the Snapshot); 14 docs-ahead page slugs stay unpinned.
+
+| Model                                   | Change  | Before | After                                                           |
+| --------------------------------------- | ------- | ------ | --------------------------------------------------------------- |
+| `Qwen/Qwen3.8-Max-Prime`                | added   | —      | 1M ctx, $4 / $12, efforts low/medium/xhigh, text + image        |
+| `nvidia/nemotron-3.5-super-vl`          | added   | —      | 262K ctx, $0.2 / $0.5, efforts low/medium/high, text + image    |
+| `meta/muse-spark-open`                  | added   | —      | 1.05M ctx, $1.25 / $4.25, efforts low/medium/high, text + image |
+| `stealth/cat-jam:free`                  | added   | —      | 1.05M ctx, free, efforts low/medium/high/xhigh/max              |
+| `inclusionai/ling-3.1-flash:free`       | renamed | free   | `inclusionai/ling-3.1-flash`, $0.3 / $0.9                       |
+| `inclusionai/ling-3.0-flash-sante:free` | removed | free   | —                                                               |
+
+### Reasoning classification
+
+- The four new models and `inclusionai/ling-3.1-flash` enter as
+  reasoning-capable; classification writes 92 entries (no pending bucket).
+
+### Deals catalog
+
+- New rows: `Qwen/Qwen3.8-Max-Prime`, `nvidia/nemotron-3.5-super-vl` and
+  `meta/muse-spark-open` (opensource, goat 20 / pro 30),
+  `stealth/cat-jam:free` (opensource, free), and
+  `inclusionai/ling-3.1-flash` (opensource, paid, goat 100 / pro 110).
+- New intelligence benchmarks: `claude-haiku-5-5` 43.4,
+  `google/gemini-4-argon` 52.6, `meta/muse-wonder-1.0` 52.4,
+  `mistral/mistral-large-4` 38.4, `inclusionai/ling-3.1-flash` 41.1.
+- Deals and RSC fixtures re-captured from the live docs pages.
+
+| Model                | Change    | Before            | After               |
+| -------------------- | --------- | ----------------- | ------------------- |
+| `gpt-5.6-sol`        | allowance | goat: 70, pro: 80 | goat: 20, pro: 30   |
+| `z-ai/glm-5.3-flash` | allowance | goat: 60, pro: 70 | goat: 100, pro: 100 |
+
 ## 2.2.8 - 2026-10-14
 
 ### Model catalog

@@ -152,6 +152,14 @@ export function parseInputModalities(bundleSource) {
     // below still fails if an actual catalog model is missing from the bundle.
     const id = resolveString(idProperty.value, constants)
     if (!id) return
+    // A runtime catalog parser rebuilds model records from local bindings
+    // (command-code@1.82.5: `{model:{id:n,contextWindow:r,inputModalities:l}}`).
+    // Catalog entries always carry an array literal; a bare binding here is
+    // runtime data, and the scope-blind constant lookup above can mis-resolve
+    // its minified `id` (and `contextWindow`) to an unrelated top-level
+    // string. Skip it before either field is recorded. Literal non-array
+    // values still fail loudly in parseModalities.
+    if (["Identifier", "MemberExpression"].includes(modalitiesProperty.value.type)) return
     // Collect the catalog entry's contextWindow literal (issue #132 — the
     // context ladder's second step). A second conflicting entry for the same
     // id is a loud shape failure (same rule as conflicting modalities).

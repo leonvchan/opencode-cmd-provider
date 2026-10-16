@@ -126,6 +126,38 @@ run([
   ],
 
   [
+    "skips runtime records whose inputModalities is a binding, not an array literal",
+    () => {
+      // command-code@1.82.5 ships a catalog response parser whose minified
+      // locals collide with top-level string constants (`n` → "auto").
+      const result = parseInputModalities(`
+        const n = "auto", r = "1000000"
+        const models = [{id: "real/model", name: "Real", inputModalities: ["text", "image"], contextWindow: 2e5}]
+        function parseModel(e) {
+          const { id: n, context_length: r, inputModalities: l } = e
+          return { model: { id: n, contextWindow: r, inputModalities: l, other: e.x.inputModalities } }
+        }
+        function viaMember(o) { return { id: n, name: "x", inputModalities: o.inputModalities } }
+      `)
+      assertEqual([...result.modelIds], ["real/model"])
+      assertEqual(result.contextWindows, { "real/model": 200000 })
+    },
+  ],
+
+  [
+    "still rejects a catalog entry whose inputModalities is a non-array literal",
+    () => {
+      throws(
+        () =>
+          parseInputModalities(
+            `const model = {id: "bad/model", name: "Bad", inputModalities: "text"}`,
+          ),
+        /inputModalities for bad\/model must be an array of strings/,
+      )
+    },
+  ],
+
+  [
     "rejects malformed JavaScript instead of silently returning no models",
     () => {
       throws(() => parseInputModalities(`const model = {id: "broken/model"`), /could not parse/)

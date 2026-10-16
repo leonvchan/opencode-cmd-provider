@@ -1,0 +1,54 @@
+name: Stale needs-info
+
+# Daily cron that closes issues stuck waiting on the reporter. Only
+# issues carrying the `needs-info` label are considered — confirmed,
+# valid issues stay open regardless of age, so real bugs are never
+# hidden just because nobody got to them.
+#
+# Lifecycle:
+#   1. Maintainer asks the reporter a question and adds `needs-info`.
+#   2. 14 days with no activity → the bot adds `stale` and comments.
+#   3. 7 more days with no activity → the bot closes as "not planned".
+#   Any activity (e.g. the reporter replying) removes `stale` and
+#   `needs-info`, putting the issue back in the maintainer's court.
+#
+# Triggered by:
+#   - schedule: 01:00 UTC every day.
+#   - workflow_dispatch: manual run from the Actions tab.
+#
+# Pull requests are never touched.
+on:
+  schedule:
+    - cron: "0 1 * * *"
+  workflow_dispatch:
+
+# `issues: write` is needed to label, comment on, and close issues.
+permissions:
+  issues: write
+
+concurrency:
+  group: stale
+  cancel-in-progress: false
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@4391f3da665fdf50b6810c1a66712fb9ba21aa93 # v11.0.0
+        with:
+          only-labels: needs-info
+          days-before-issue-stale: 14
+          days-before-issue-close: 7
+          stale-issue-label: stale
+          labels-to-remove-when-unstale: needs-info
+          stale-issue-message: >
+            This issue is waiting for more information and has had no
+            activity for 14 days. It will be closed in 7 days unless
+            there is a reply.
+          close-issue-message: >
+            Closing because the requested information wasn't provided.
+            Feel free to reopen with the details if this is still
+            relevant.
+          close-issue-reason: not_planned
+          days-before-pr-stale: -1
+          days-before-pr-close: -1

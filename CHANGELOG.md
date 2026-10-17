@@ -1,3 +1,15 @@
+## 2.2.10 - 2026-10-17
+
+### Deals catalog
+
+## Deals catalog
+
+- **DEAL_LAST_REFRESHED**: `2026-10-16` → `2026-10-17`
+
+| Model                          | Change    | Before              | After             |
+| ------------------------------ | --------- | ------------------- | ----------------- |
+| `deepseek/deepseek-v4.1-flash` | allowance | goat: 100, pro: 100 | goat: 80, pro: 90 |
+
 ## 2.2.9 - 2026-10-16
 
 **Fix — the catalog refresh parses command-code@1.82.3 and later again.**

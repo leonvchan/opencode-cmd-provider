@@ -94,13 +94,32 @@ export async function setupCommandCode(
 /**
  * Provider-level gap-fill. A missing provider seeds from
  * `Provider.Info.empty(id)` (`{ id, name: id, activation: "auto", package: "" }`),
- * so "still at the seed value" is exactly the "user left it unset" signal —
- * the v2 counterpart of v1's `??=` fills.
+ * but that is not the only way a `commandcode` provider reaches this draft: the
+ * host's built-in models.dev catalog plugin adds its own `commandcode` entry in
+ * an earlier `provider.transform`, which pre-fills `package` with that entry's
+ * `npm` (`@ai-sdk/openai-compatible`), `name`, and `settings.baseURL` from its
+ * `api`. A catalog entry is not an owner, so "non-empty" cannot mean "someone
+ * else supplies the SDK" — only an `aisdk:` specifier can, because that is the
+ * shape `ctx.aisdk.hook("sdk")` hands over and the host's
+ * `ModelResolver` requires before it calls that hook. Without this the plugin
+ * is silently dropped from the request path, and with it Go accounts lose the
+ * legacy transport their plan gate falls back to.
+ *
+ * Claiming takes everything the foreign owner seeded, not just `package`: the
+ * catalog's `baseURL` is the Provider API root (`…/provider/v1`), which the
+ * transport would append its own path to, and its Claude models carry a
+ * model-level `package` (`@ai-sdk/anthropic`) that the host resolves ahead of
+ * the provider's. User config is safe to override here — the host applies it
+ * in a post-plugin pass (`opencode.config.provider`), so it still wins.
  */
 export function registerProvider(editor: V2ProviderEditor, specifier: string): void {
   editor.update(PROVIDER_ID, (provider: V2ProviderInfo) => {
     if (provider.name === provider.id) provider.name = PROVIDER_NAME
-    if (provider.package === "") provider.package = specifier
+    if (!provider.package?.startsWith(AISDK_PREFIX)) {
+      if (provider.package !== "") provider.name = PROVIDER_NAME
+      provider.package = specifier
+      provider.settings = { ...provider.settings, baseURL: getApiBase() }
+    }
     // Ties the provider to the credential that unlocks it, so availability
     // follows the connection — the same coupling as v1's declared `env`.
     if (provider.integrationID === undefined) provider.integrationID = PROVIDER_ID
@@ -109,6 +128,14 @@ export function registerProvider(editor: V2ProviderEditor, specifier: string): v
       provider.settings["baseURL"] = getApiBase()
     }
   })
+  const foreign = [...(editor.get(PROVIDER_ID)?.models.values() ?? [])].filter(
+    (model) => model.package !== undefined && !model.package.startsWith(AISDK_PREFIX),
+  )
+  for (const model of foreign) {
+    editor.models.update(PROVIDER_ID, model.id, (entry: V2ModelInfo) => {
+      entry.package = undefined
+    })
+  }
 }
 
 /**

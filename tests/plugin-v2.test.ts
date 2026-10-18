@@ -690,6 +690,92 @@ run([
     },
   ],
   [
+    "registerProvider claims a provider the models.dev catalog pre-seeded",
+    () => {
+      // models.dev now carries a first-class `commandcode` entry, and the host's
+      // built-in catalog plugin adds it in an earlier provider.transform. Its `npm`
+      // lands in `package` and its `api` in `settings.baseURL`, so neither the
+      // empty-seed check nor "declared values win" can tell it from a user
+      // declaration.
+      const draft = new Map<string, ProviderRecord>()
+      draft.set(PROVIDER_ID, {
+        provider: {
+          id: PROVIDER_ID,
+          name: "CommandCode",
+          activation: "auto",
+          package: "@opencode/ai/providers/openai-compatible",
+          settings: { baseURL: "https://api.commandcode.ai/provider/v1" },
+        },
+        models: new Map(),
+      })
+      registerProvider(providerEditor(draft), "aisdk:opencode-cmd-provider@2.2.10")
+      const provider = draft.get(PROVIDER_ID)?.provider
+      assertEqual(provider?.package, "aisdk:opencode-cmd-provider@2.2.10")
+      assertEqual(provider?.name, PROVIDER_NAME)
+      // The catalog's `api` is the Provider API root; left in place, the
+      // transport appends its own path and every request lands on
+      // `/provider/v1/provider/v1/…` or `/provider/v1/alpha/generate`.
+      assertEqual(provider?.settings?.["baseURL"], "https://api.commandcode.ai")
+    },
+  ],
+  [
+    "registerProvider strips the catalog's model-level package so the model routes through the plugin",
+    () => {
+      // The catalog gives Claude models `provider.npm: "@ai-sdk/anthropic"`, which
+      // the host maps onto the model's own `package` and resolves ahead of the
+      // provider's — so claiming the provider alone leaves them on the host's
+      // Anthropic client against the Provider API.
+      const draft = new Map<string, ProviderRecord>()
+      draft.set(PROVIDER_ID, {
+        provider: {
+          id: PROVIDER_ID,
+          name: "CommandCode",
+          activation: "auto",
+          package: "@opencode/ai/providers/openai-compatible",
+          settings: { baseURL: "https://api.commandcode.ai/provider/v1" },
+        },
+        models: new Map([
+          [
+            "claude-sonnet-5",
+            {
+              ...defaultModel(PROVIDER_ID, "claude-sonnet-5"),
+              package: "@opencode/ai/providers/anthropic",
+            },
+          ],
+          ["gpt-5.4", defaultModel(PROVIDER_ID, "gpt-5.4")],
+          ["mine", { ...defaultModel(PROVIDER_ID, "mine"), package: "aisdk:@me/cmd" }],
+        ]),
+      })
+      registerProvider(providerEditor(draft), "aisdk:opencode-cmd-provider@2.2.10")
+      const models = draft.get(PROVIDER_ID)?.models
+      assertEqual(models?.get("claude-sonnet-5")?.package, undefined)
+      assertEqual(models?.get("gpt-5.4")?.package, undefined)
+      assertEqual(models?.get("mine")?.package, "aisdk:@me/cmd")
+    },
+  ],
+  [
+    "a claimed catalog provider still honours COMMANDCODE_API_BASE",
+    () =>
+      withEnvVars({ COMMANDCODE_API_BASE: "https://staging.example" }, () => {
+        const draft = new Map<string, ProviderRecord>()
+        draft.set(PROVIDER_ID, {
+          provider: {
+            id: PROVIDER_ID,
+            name: "CommandCode",
+            activation: "auto",
+            package: "@opencode/ai/providers/openai-compatible",
+            settings: { baseURL: "https://api.commandcode.ai/provider/v1" },
+          },
+          models: new Map(),
+        })
+        registerProvider(providerEditor(draft), "aisdk:opencode-cmd-provider@2.2.10")
+        assertEqual(
+          draft.get(PROVIDER_ID)?.provider.settings?.["baseURL"],
+          "https://staging.example",
+        )
+      }),
+  ],
+  [
     "registerModels is additive and never drops a declared model",
     () => {
       const draft = new Map<string, ProviderRecord>()

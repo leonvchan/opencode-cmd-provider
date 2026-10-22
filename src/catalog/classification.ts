@@ -20,7 +20,7 @@ export const CLASSIFICATION_SOURCE_URLS: ReadonlyArray<string> = [
   "https://commandcode.ai/docs/plans/pro",
 ]
 
-export const CLASSIFICATION_LAST_REFRESHED = "2026-10-20"
+export const CLASSIFICATION_LAST_REFRESHED = "2026-10-22"
 
 // Active capability overrides. Empty = upstream data is truth.
 // Every entry requires a written justification naming the upstream
@@ -80,6 +80,8 @@ export const MODEL_REASONING_CAPABILITY: Readonly<Record<string, boolean>> = {
   "meta/muse-spark-1.3-contributor": true,
   "meta/muse-spark-open": true,
   "meta/muse-wonder-1.0": true,
+  "minimax/minimax-m3.1-flash": true,
+  "minimax/minimax-m3.1-flash:free": true,
   "MiniMaxAI/MiniMax-M2.5": false,
   "MiniMaxAI/MiniMax-M2.7": false,
   "MiniMaxAI/MiniMax-M3": true,
@@ -91,6 +93,8 @@ export const MODEL_REASONING_CAPABILITY: Readonly<Record<string, boolean>> = {
   "moonshotai/Kimi-K3": true,
   "nvidia/nemotron-3-ultra-550b-a55b": true,
   "nvidia/nemotron-3.5-super-vl": true,
+  "ornith/ornith-1.5-122b": true,
+  "ornith/ornith-1.5-122b:free": true,
   "poolside/laguna-s-2.1-free": true,
   "Qwen/Qwen3.6-Max-Preview": true,
   "Qwen/Qwen3.6-Plus": true,
@@ -103,8 +107,8 @@ export const MODEL_REASONING_CAPABILITY: Readonly<Record<string, boolean>> = {
   "Qwen/Qwen3.8-Max-0902": true,
   "Qwen/Qwen3.8-Max-Prime": true,
   "Qwen/Qwen3.8-Omni-Flash": true,
+  "reflection/beam:free": true,
   "sakana/fugu-ultra": true,
-  "stealth/cat-jam:free": true,
   "stealth/glyph-cluster:free": true,
   "stepfun/Step-3.5-Flash": true,
   "stepfun/Step-3.7-Flash": true,

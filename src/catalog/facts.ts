@@ -6,10 +6,10 @@
 // parse from the CLI bundle (dist/cli.mjs). Regenerate with
 // `npm run refresh:snapshot`.
 
-export const FACTS_SOURCE_URL = "https://unpkg.com/command-code@1.84.0/dist/bundled/command-code-knowledge/reference/models.md"
-export const MODALITIES_SOURCE_URL = "https://unpkg.com/command-code@1.84.0/dist/cli.mjs"
-export const FACTS_PACKAGE_VERSION = "1.84.0"
-export const FACTS_LAST_REFRESHED = "2026-10-20"
+export const FACTS_SOURCE_URL = "https://unpkg.com/command-code@1.87.1/dist/bundled/command-code-knowledge/reference/models.md"
+export const MODALITIES_SOURCE_URL = "https://unpkg.com/command-code@1.87.1/dist/cli.mjs"
+export const FACTS_PACKAGE_VERSION = "1.87.1"
+export const FACTS_LAST_REFRESHED = "2026-10-22"
 
 export const MODEL_EFFORTS: Readonly<Record<string, readonly string[]>> = {
   "deepseek/deepseek-v4-pro": ["high","max"],
@@ -23,6 +23,8 @@ export const MODEL_EFFORTS: Readonly<Record<string, readonly string[]>> = {
   "z-ai/glm-5.3-flashx": ["low","high","max"],
   "zai-org/GLM-5.3": ["low","high","max"],
   "zai-org/GLM-5.2": ["high","max"],
+  "minimax/minimax-m3.1-flash": ["low","medium","high","xhigh","max"],
+  "minimax/minimax-m3.1-flash:free": ["low","medium","high","xhigh","max"],
   "MiniMaxAI/MiniMax-M3": ["low","medium","high"],
   "Qwen/Qwen3.8-Omni-Flash": ["low","medium","xhigh"],
   "Qwen/Qwen3.8-Max-Prime": ["low","medium","xhigh"],
@@ -33,10 +35,10 @@ export const MODEL_EFFORTS: Readonly<Record<string, readonly string[]>> = {
   "stepfun/Step-5-Preview": ["low","medium","high"],
   "tencent/hy4-preview": ["low","medium","high"],
   "nvidia/nemotron-3.5-super-vl": ["low","medium","high"],
+  "reflection/beam:free": ["low","medium","high","xhigh","max"],
   "inclusionai/ling-3.1-flash": ["low","medium","high"],
   "mistral/mistral-large-4": ["low","medium","high"],
   "stealth/glyph-cluster:free": ["low","medium","high","xhigh"],
-  "stealth/cat-jam:free": ["low","medium","high","xhigh","max"],
   "claude-sonnet-5-5": ["low","medium","high","xhigh","max"],
   "claude-sonnet-5": ["low","medium","high","xhigh","max"],
   "claude-sonnet-4-6": ["low","medium","high","xhigh","max"],
@@ -99,9 +101,13 @@ export const MODEL_COSTS: Readonly<
   "zai-org/GLM-5.2-Fast": { input: 3, output: 10.25, cacheRead: 0.5, cacheWrite: 0 },
   "zai-org/GLM-5.1": { input: 1.4, output: 4.4, cacheRead: 0.26, cacheWrite: 0 },
   "zai-org/GLM-5": { input: 1, output: 3.2, cacheRead: 0.2, cacheWrite: 0 },
+  "minimax/minimax-m3.1-flash": { input: 0.15, output: 0.6, cacheRead: 0.015, cacheWrite: 0 },
+  "minimax/minimax-m3.1-flash:free": { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
   "MiniMaxAI/MiniMax-M3": { input: 0.3, output: 1.2, cacheRead: 0.06, cacheWrite: 0 },
   "MiniMaxAI/MiniMax-M2.7": { input: 0.3, output: 1.2, cacheRead: 0.06, cacheWrite: 0 },
   "MiniMaxAI/MiniMax-M2.5": { input: 0.3, output: 1.2, cacheRead: 0.03, cacheWrite: 0 },
+  "ornith/ornith-1.5-122b": { input: 0.16, output: 0.64, cacheRead: 0.02, cacheWrite: 0 },
+  "ornith/ornith-1.5-122b:free": { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
   "xiaomi/mimo-v2.6-pro": { input: 0.435, output: 0.87, cacheRead: 0.0036, cacheWrite: 0 },
   "xiaomi/mimo-v2.6-pro-ultraspeed": { input: 4.35, output: 8.7, cacheRead: 0.036, cacheWrite: 0 },
   "xiaomi/mimo-v2.6-flash": { input: 0.14, output: 0.28, cacheRead: 0.0028, cacheWrite: 0 },
@@ -128,11 +134,11 @@ export const MODEL_COSTS: Readonly<
   "nvidia/nemotron-3.5-super-vl": { input: 0.2, output: 0.5, cacheRead: 0.04, cacheWrite: 0 },
   "thinkingmachines/inkling": { input: 1, output: 4.05, cacheRead: 0.17, cacheWrite: 0 },
   "thinkingmachines/inkling-small": { input: 0.5, output: 1.2, cacheRead: 0.1, cacheWrite: 0 },
+  "reflection/beam:free": { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
   "poolside/laguna-s-2.1-free": { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
   "inclusionai/ling-3.1-flash": { input: 0.3, output: 0.9, cacheRead: 0.06, cacheWrite: 0 },
   "mistral/mistral-large-4": { input: 1.36, output: 4.18, cacheRead: 0.14, cacheWrite: 0 },
   "stealth/glyph-cluster:free": { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
-  "stealth/cat-jam:free": { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
   "claude-sonnet-5-5": { input: 2, output: 10, cacheRead: 0.1, cacheWrite: 2.5 },
   "claude-sonnet-5": { input: 2, output: 10, cacheRead: 0.2, cacheWrite: 2.5 },
   "claude-sonnet-4-6": { input: 3, output: 15, cacheRead: 0.3, cacheWrite: 3.75 },
@@ -227,6 +233,8 @@ export const MODEL_INPUT_MODALITIES: Readonly<
   "meta/muse-spark-1.3-contributor": ["text","image"],
   "meta/muse-spark-open": ["text","image"],
   "meta/muse-wonder-1.0": ["text","image"],
+  "minimax/minimax-m3.1-flash": ["text","image"],
+  "minimax/minimax-m3.1-flash:free": ["text","image"],
   "mistral/mistral-large-4": ["text","image"],
   "moonshotai/Kimi-K2.5": ["text","image"],
   "moonshotai/Kimi-K2.6": ["text","image"],
@@ -234,6 +242,8 @@ export const MODEL_INPUT_MODALITIES: Readonly<
   "moonshotai/Kimi-K2.7-Code-Highspeed": ["text","image"],
   "moonshotai/Kimi-K3": ["text","image"],
   "nvidia/nemotron-3.5-super-vl": ["text","image"],
+  "ornith/ornith-1.5-122b": ["text","image"],
+  "ornith/ornith-1.5-122b:free": ["text","image"],
   "sakana/fugu-ultra": ["text","image"],
   "stepfun/Step-3.7-Flash": ["text","image"],
   "stepfun/Step-5-Preview": ["text","image"],

@@ -1,3 +1,89 @@
+## 2.2.12 - 2026-10-22
+
+### Model catalog
+
+## Model catalog
+
+- **FACTS_LAST_REFRESHED**: `2026-10-20` → `2026-10-22`
+
+| Model                               | Change  | Before                                 | After                                           |
+| ----------------------------------- | ------- | -------------------------------------- | ----------------------------------------------- |
+| `deepseek/deepseek-v4.1-flash`      | renamed | DeepSeek V4.1 Flash · 1000000 ctx      | DeepSeek V4.1 Flash (latest) · 1000000 ctx      |
+| `deepseek/deepseek-v4.1-flash-fast` | renamed | DeepSeek V4.1 Flash Fast · 1000000 ctx | DeepSeek V4.1 Flash Fast (latest) · 1000000 ctx |
+| `minimax/minimax-m3.1-flash`        | added   | —                                      | MiniMax M3.1 Flash · 1000000 ctx                |
+| `minimax/minimax-m3.1-flash:free`   | added   | —                                      | MiniMax M3.1 Flash · 1000000 ctx                |
+| `ornith/ornith-1.5-122b`            | added   | —                                      | Ornith 1.5 122B · 262000 ctx                    |
+| `ornith/ornith-1.5-122b:free`       | added   | —                                      | Ornith 1.5 122B · 262000 ctx                    |
+| `reflection/beam:free`              | added   | —                                      | Beam 1.0 · 1050000 ctx                          |
+| `stealth/cat-jam:free`              | removed | Cat Jam · 1050000 ctx                  | —                                               |
+
+### Removed models (1)
+
+- `stealth/cat-jam:free`: Cat Jam · 1050000 ctx — package row removed, pruned from the Snapshot
+
+### API divergence
+
+- `minimax/minimax-m3.1-flash:free`: in package membership but not served by the listing API
+- `ornith/ornith-1.5-122b:free`: in package membership but not served by the listing API
+
+### Pinned slug map (19)
+
+- `ling-3-0-flash-sante-free` → `inclusionai/ling-3.0-flash-sante:free`: pinned id is not in the Snapshot (upstream renamed it; re-pin the map)
+- `pixel-canary` → `stealth/pixel-canary`: pinned id is not in the Snapshot (upstream renamed it; re-pin the map)
+- `space-bunny-alpha` → `stealth/space-bunny-alpha`: pinned id is not in the Snapshot (upstream renamed it; re-pin the map)
+- `beam-free`: models-page slug not in the pinned map (docs-ahead; page evidence skipped)
+- `claude-haiku-5-5`: models-page slug not in the pinned map (docs-ahead; page evidence skipped)
+- `claude-sonnet-5-5`: models-page slug not in the pinned map (docs-ahead; page evidence skipped)
+- `deepseek-v4-1-flash-fast`: models-page slug not in the pinned map (docs-ahead; page evidence skipped)
+- `gemini-4-argon`: models-page slug not in the pinned map (docs-ahead; page evidence skipped)
+- `glyph-cluster-free`: models-page slug not in the pinned map (docs-ahead; page evidence skipped)
+- `gpt-6-1-sol`: models-page slug not in the pinned map (docs-ahead; page evidence skipped)
+- `jev`: models-page slug not in the pinned map (docs-ahead; page evidence skipped)
+- `jev-1-14-0`: models-page slug not in the pinned map (docs-ahead; page evidence skipped)
+- `ling-3-1-flash`: models-page slug not in the pinned map (docs-ahead; page evidence skipped)
+- `minimax-m3-1-flash`: models-page slug not in the pinned map (docs-ahead; page evidence skipped)
+- `mistral-large-4`: models-page slug not in the pinned map (docs-ahead; page evidence skipped)
+- `muse-spark-open`: models-page slug not in the pinned map (docs-ahead; page evidence skipped)
+- `nemotron-3-5-super-vl`: models-page slug not in the pinned map (docs-ahead; page evidence skipped)
+- `ornith-1-5-122b`: models-page slug not in the pinned map (docs-ahead; page evidence skipped)
+- `qwen3-8-max-prime`: models-page slug not in the pinned map (docs-ahead; page evidence skipped)
+
+### Reasoning classification
+
+## Reasoning classification
+
+- **CLASSIFICATION_LAST_REFRESHED**: `2026-10-20` → `2026-10-22`
+
+| Model                             | Change  | Before                                        | After                                         |
+| --------------------------------- | ------- | --------------------------------------------- | --------------------------------------------- |
+| `minimax/minimax-m3.1-flash`      | new     | —                                             | efforts model (low, medium, high, xhigh, max) |
+| `minimax/minimax-m3.1-flash:free` | new     | —                                             | efforts model (low, medium, high, xhigh, max) |
+| `ornith/ornith-1.5-122b`          | new     | —                                             | reasoning-without-efforts                     |
+| `ornith/ornith-1.5-122b:free`     | new     | —                                             | reasoning-without-efforts                     |
+| `reflection/beam:free`            | new     | —                                             | efforts model (low, medium, high, xhigh, max) |
+| `stealth/cat-jam:free`            | retired | efforts model (low, medium, high, xhigh, max) | —                                             |
+
+### Deals catalog
+
+## Deals catalog
+
+- **DEAL_LAST_REFRESHED**: `2026-10-20` → `2026-10-22`
+
+| Model                             | Change    | Before                     | After                      |
+| --------------------------------- | --------- | -------------------------- | -------------------------- |
+| `gpt-6-luna`                      | benchmark | intelligence 37.3, tok/s — | intelligence 38.1, tok/s — |
+| `gpt-6-sol`                       | benchmark | intelligence 47.5, tok/s — | intelligence 47.6, tok/s — |
+| `meta/muse-spark-open`            | benchmark | —                          | intelligence 38.9, tok/s — |
+| `minimax/minimax-m3.1-flash`      | added     | —                          | opensource                 |
+| `minimax/minimax-m3.1-flash:free` | added     | —                          | opensource (free)          |
+| `mistral/mistral-large-4`         | allowance | goat: 40, pro: 50          | goat: 20, pro: 30          |
+| `nvidia/nemotron-3.5-super-vl`    | benchmark | —                          | intelligence 26.5, tok/s — |
+| `ornith/ornith-1.5-122b`          | added     | —                          | opensource                 |
+| `ornith/ornith-1.5-122b:free`     | added     | —                          | opensource (free)          |
+| `reflection/beam:free`            | added     | —                          | opensource (free)          |
+| `thinkingmachines/inkling-small`  | benchmark | intelligence 27.8, tok/s — | intelligence 25.7, tok/s — |
+| `xiaomi/mimo-v2.5`                | benchmark | intelligence 25.2, tok/s — | intelligence 21.8, tok/s — |
+
 ## 2.2.11 - 2026-10-20
 
 **Fix — Go accounts on OpenCode v2 reach the legacy transport again.** models.dev

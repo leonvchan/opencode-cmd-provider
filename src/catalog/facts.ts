@@ -6,9 +6,9 @@
 // parse from the CLI bundle (dist/cli.mjs). Regenerate with
 // `npm run refresh:snapshot`.
 
-export const FACTS_SOURCE_URL = "https://unpkg.com/command-code@1.87.3/dist/bundled/command-code-knowledge/reference/models.md"
-export const MODALITIES_SOURCE_URL = "https://unpkg.com/command-code@1.87.3/dist/cli.mjs"
-export const FACTS_PACKAGE_VERSION = "1.87.3"
+export const FACTS_SOURCE_URL = "https://unpkg.com/command-code@1.88.0/dist/bundled/command-code-knowledge/reference/models.md"
+export const MODALITIES_SOURCE_URL = "https://unpkg.com/command-code@1.88.0/dist/cli.mjs"
+export const FACTS_PACKAGE_VERSION = "1.88.0"
 export const FACTS_LAST_REFRESHED = "2026-10-23"
 
 export const MODEL_EFFORTS: Readonly<Record<string, readonly string[]>> = {
@@ -108,8 +108,6 @@ export const MODEL_COSTS: Readonly<
   "xiaomi/mimo-v2.6-pro": { input: 0.435, output: 0.87, cacheRead: 0.0036, cacheWrite: 0 },
   "xiaomi/mimo-v2.6-pro-ultraspeed": { input: 4.35, output: 8.7, cacheRead: 0.036, cacheWrite: 0 },
   "xiaomi/mimo-v2.6-flash": { input: 0.14, output: 0.28, cacheRead: 0.0028, cacheWrite: 0 },
-  "xiaomi/mimo-v2.5-pro": { input: 0.435, output: 0.87, cacheRead: 0.0036, cacheWrite: 0 },
-  "xiaomi/mimo-v2.5": { input: 0.14, output: 0.28, cacheRead: 0.0028, cacheWrite: 0 },
   "Qwen/Qwen3.8-Omni-Flash": { input: 0.15, output: 0.47, cacheRead: 0.016, cacheWrite: 0 },
   "Qwen/Qwen3.8-Max-Prime": { input: 4, output: 12, cacheRead: 0.5, cacheWrite: 5 },
   "Qwen/Qwen3.8-Max-0902": { input: 2, output: 6, cacheRead: 0.25, cacheWrite: 0 },
@@ -247,7 +245,6 @@ export const MODEL_INPUT_MODALITIES: Readonly<
   "xai/grok-4.5": ["text","image"],
   "xai/grok-4.6": ["text","image"],
   "xai/grok-4.7": ["text","image"],
-  "xiaomi/mimo-v2.5": ["text","image"],
   "xiaomi/mimo-v2.6-flash": ["text","image"],
   "xiaomi/mimo-v2.6-pro": ["text","image"],
   "xiaomi/mimo-v2.6-pro-ultraspeed": ["text","image"],

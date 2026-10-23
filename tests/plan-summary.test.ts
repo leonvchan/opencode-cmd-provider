@@ -15,6 +15,7 @@ import {
 } from "../src/rates-usage/plan-summary.js"
 import { normalizePlan } from "../src/catalog/plans.js"
 import { MODEL_DEALS, PLAN_CATALOG, type ModelDeals } from "../src/rates-usage/catalog.js"
+import { discountLabel } from "../src/rates-usage/format.js"
 import { assert, assertEqual, run } from "./harness.js"
 
 const OFFLINE_ENV: NodeJS.ProcessEnv = {} // no key → no network attempt
@@ -975,11 +976,29 @@ run([
   [
     "renderPlanSummary shows deals instead of allowances for Max plans",
     () => {
-      const out = renderPlanSummary("max", MODEL_DEALS, PLAN_CATALOG)
+      // The deal set is derived from the live catalog, never pinned: the
+      // refresh cron owns those values (spec #108 — an upstream deal ending
+      // surfaces as a refresh-PR diff, never as a red suite). This assertion
+      // used to pin the MiMo deal's "98% off" and went red on run
+      // 39944493194 (2026-10-23) when the RSC dropped the MiMo v2.5 records
+      // and the models shipped core-only. A fixed day keeps the
+      // ended/until wording deterministic.
+      const today = "2026-10-23"
+      const out = renderPlanSummary("max", MODEL_DEALS, PLAN_CATALOG, undefined, today)
       assert(out.includes("Max 10×"), "must name the plan")
       assert(out.includes("no per-model allowances"), "must be honest about max")
       assert(out.includes("Deal"), "must show a deal column")
-      assert(out.includes("98% off"), "must list the MiMo deal")
+      const labels: string[] = []
+      for (const d of Object.values(MODEL_DEALS)) {
+        if (d.discount) labels.push(discountLabel(d.discount.pct, d.discount.endsAt, today))
+        else if (d.peakOffPeak) labels.push(`peak/off-peak (${d.peakOffPeak.windows})`)
+      }
+      // No length guard: an empty deal set is upstream's call, not a test
+      // failure ("No deal data is bundled for this plan." covers it). Whenever
+      // a deal exists, the loop below still catches a renderer that drops it.
+      for (const label of labels) {
+        assert(out.includes(label), `must render every Max deal row (missing "${label}")`)
+      }
     },
   ],
 

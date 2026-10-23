@@ -33,8 +33,6 @@ export const CLASSIFICATION_OVERRIDES: Readonly<Record<string, { capability: boo
 // non-reasoning and land in this bucket until evidence arrives — the
 // next refresh moves them into MODEL_REASONING_CAPABILITY with zero code.
 export const MODEL_REASONING_PENDING: ReadonlyArray<string> = [
-  "xiaomi/mimo-v2.5",
-  "xiaomi/mimo-v2.5-pro",
 ]
 
 export const MODEL_REASONING_CAPABILITY: Readonly<Record<string, boolean>> = {

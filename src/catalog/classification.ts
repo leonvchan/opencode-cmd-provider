@@ -20,7 +20,7 @@ export const CLASSIFICATION_SOURCE_URLS: ReadonlyArray<string> = [
   "https://commandcode.ai/docs/plans/pro",
 ]
 
-export const CLASSIFICATION_LAST_REFRESHED = "2026-10-22"
+export const CLASSIFICATION_LAST_REFRESHED = "2026-10-23"
 
 // Active capability overrides. Empty = upstream data is truth.
 // Every entry requires a written justification naming the upstream
@@ -33,6 +33,8 @@ export const CLASSIFICATION_OVERRIDES: Readonly<Record<string, { capability: boo
 // non-reasoning and land in this bucket until evidence arrives — the
 // next refresh moves them into MODEL_REASONING_CAPABILITY with zero code.
 export const MODEL_REASONING_PENDING: ReadonlyArray<string> = [
+  "xiaomi/mimo-v2.5",
+  "xiaomi/mimo-v2.5-pro",
 ]
 
 export const MODEL_REASONING_CAPABILITY: Readonly<Record<string, boolean>> = {
@@ -81,7 +83,6 @@ export const MODEL_REASONING_CAPABILITY: Readonly<Record<string, boolean>> = {
   "meta/muse-spark-open": true,
   "meta/muse-wonder-1.0": true,
   "minimax/minimax-m3.1-flash": true,
-  "minimax/minimax-m3.1-flash:free": true,
   "MiniMaxAI/MiniMax-M2.5": false,
   "MiniMaxAI/MiniMax-M2.7": false,
   "MiniMaxAI/MiniMax-M3": true,
@@ -94,7 +95,6 @@ export const MODEL_REASONING_CAPABILITY: Readonly<Record<string, boolean>> = {
   "nvidia/nemotron-3-ultra-550b-a55b": true,
   "nvidia/nemotron-3.5-super-vl": true,
   "ornith/ornith-1.5-122b": true,
-  "ornith/ornith-1.5-122b:free": true,
   "poolside/laguna-s-2.1-free": true,
   "Qwen/Qwen3.6-Max-Preview": true,
   "Qwen/Qwen3.6-Plus": true,
@@ -120,8 +120,6 @@ export const MODEL_REASONING_CAPABILITY: Readonly<Record<string, boolean>> = {
   "xai/grok-4.5": true,
   "xai/grok-4.6": true,
   "xai/grok-4.7": true,
-  "xiaomi/mimo-v2.5": false,
-  "xiaomi/mimo-v2.5-pro": false,
   "xiaomi/mimo-v2.6-flash": false,
   "xiaomi/mimo-v2.6-pro": false,
   "xiaomi/mimo-v2.6-pro-ultraspeed": false,

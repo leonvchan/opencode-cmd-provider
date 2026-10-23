@@ -6,10 +6,10 @@
 // parse from the CLI bundle (dist/cli.mjs). Regenerate with
 // `npm run refresh:snapshot`.
 
-export const FACTS_SOURCE_URL = "https://unpkg.com/command-code@1.87.1/dist/bundled/command-code-knowledge/reference/models.md"
-export const MODALITIES_SOURCE_URL = "https://unpkg.com/command-code@1.87.1/dist/cli.mjs"
-export const FACTS_PACKAGE_VERSION = "1.87.1"
-export const FACTS_LAST_REFRESHED = "2026-10-22"
+export const FACTS_SOURCE_URL = "https://unpkg.com/command-code@1.87.3/dist/bundled/command-code-knowledge/reference/models.md"
+export const MODALITIES_SOURCE_URL = "https://unpkg.com/command-code@1.87.3/dist/cli.mjs"
+export const FACTS_PACKAGE_VERSION = "1.87.3"
+export const FACTS_LAST_REFRESHED = "2026-10-23"
 
 export const MODEL_EFFORTS: Readonly<Record<string, readonly string[]>> = {
   "deepseek/deepseek-v4-pro": ["high","max"],
@@ -24,7 +24,6 @@ export const MODEL_EFFORTS: Readonly<Record<string, readonly string[]>> = {
   "zai-org/GLM-5.3": ["low","high","max"],
   "zai-org/GLM-5.2": ["high","max"],
   "minimax/minimax-m3.1-flash": ["low","medium","high","xhigh","max"],
-  "minimax/minimax-m3.1-flash:free": ["low","medium","high","xhigh","max"],
   "MiniMaxAI/MiniMax-M3": ["low","medium","high"],
   "Qwen/Qwen3.8-Omni-Flash": ["low","medium","xhigh"],
   "Qwen/Qwen3.8-Max-Prime": ["low","medium","xhigh"],
@@ -102,12 +101,10 @@ export const MODEL_COSTS: Readonly<
   "zai-org/GLM-5.1": { input: 1.4, output: 4.4, cacheRead: 0.26, cacheWrite: 0 },
   "zai-org/GLM-5": { input: 1, output: 3.2, cacheRead: 0.2, cacheWrite: 0 },
   "minimax/minimax-m3.1-flash": { input: 0.15, output: 0.6, cacheRead: 0.015, cacheWrite: 0 },
-  "minimax/minimax-m3.1-flash:free": { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
   "MiniMaxAI/MiniMax-M3": { input: 0.3, output: 1.2, cacheRead: 0.06, cacheWrite: 0 },
   "MiniMaxAI/MiniMax-M2.7": { input: 0.3, output: 1.2, cacheRead: 0.06, cacheWrite: 0 },
   "MiniMaxAI/MiniMax-M2.5": { input: 0.3, output: 1.2, cacheRead: 0.03, cacheWrite: 0 },
   "ornith/ornith-1.5-122b": { input: 0.16, output: 0.64, cacheRead: 0.02, cacheWrite: 0 },
-  "ornith/ornith-1.5-122b:free": { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
   "xiaomi/mimo-v2.6-pro": { input: 0.435, output: 0.87, cacheRead: 0.0036, cacheWrite: 0 },
   "xiaomi/mimo-v2.6-pro-ultraspeed": { input: 4.35, output: 8.7, cacheRead: 0.036, cacheWrite: 0 },
   "xiaomi/mimo-v2.6-flash": { input: 0.14, output: 0.28, cacheRead: 0.0028, cacheWrite: 0 },
@@ -234,7 +231,6 @@ export const MODEL_INPUT_MODALITIES: Readonly<
   "meta/muse-spark-open": ["text","image"],
   "meta/muse-wonder-1.0": ["text","image"],
   "minimax/minimax-m3.1-flash": ["text","image"],
-  "minimax/minimax-m3.1-flash:free": ["text","image"],
   "mistral/mistral-large-4": ["text","image"],
   "moonshotai/Kimi-K2.5": ["text","image"],
   "moonshotai/Kimi-K2.6": ["text","image"],
@@ -243,7 +239,6 @@ export const MODEL_INPUT_MODALITIES: Readonly<
   "moonshotai/Kimi-K3": ["text","image"],
   "nvidia/nemotron-3.5-super-vl": ["text","image"],
   "ornith/ornith-1.5-122b": ["text","image"],
-  "ornith/ornith-1.5-122b:free": ["text","image"],
   "sakana/fugu-ultra": ["text","image"],
   "stepfun/Step-3.7-Flash": ["text","image"],
   "stepfun/Step-5-Preview": ["text","image"],

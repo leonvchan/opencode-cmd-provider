@@ -95,7 +95,6 @@ export const MODEL_DEALS: Readonly<Record<string, ModelDeals>> = {
   "meta/muse-spark-open": { tier: "opensource", benchmark: {"intelligence":38.9}, free: false, allowance: {"goat":20,"pro":30} },
   "meta/muse-wonder-1.0": { tier: "premium", benchmark: {"intelligence":52.4}, free: false, allowance: {"goat":20,"pro":20} },
   "minimax/minimax-m3.1-flash": { tier: "opensource", benchmark: {"intelligence":42.7}, free: false, allowance: {"goat":20,"pro":30} },
-  "minimax/minimax-m3.1-flash:free": { tier: "opensource", free: true },
   "MiniMaxAI/MiniMax-M2.5": { tier: "opensource", benchmark: {"intelligence":22.8}, free: false, allowance: {"goat":20,"pro":30} },
   "MiniMaxAI/MiniMax-M2.7": { tier: "opensource", benchmark: {"intelligence":22.8}, free: false, allowance: {"goat":20,"pro":30} },
   "MiniMaxAI/MiniMax-M3": { tier: "opensource", discount: {"pct":50}, was: {"input":0.6,"output":2.4,"cacheRead":0.12}, now: {"input":0.3,"output":1.2,"cacheRead":0.06}, benchmark: {"intelligence":29.2}, free: false, allowance: {"goat":47,"pro":57} },
@@ -108,7 +107,6 @@ export const MODEL_DEALS: Readonly<Record<string, ModelDeals>> = {
   "nvidia/nemotron-3-ultra-550b-a55b": { tier: "opensource", benchmark: {"intelligence":22.9}, free: false, allowance: {"goat":20,"pro":30} },
   "nvidia/nemotron-3.5-super-vl": { tier: "opensource", benchmark: {"intelligence":26.5}, free: false, allowance: {"goat":20,"pro":30} },
   "ornith/ornith-1.5-122b": { tier: "opensource", free: false, allowance: {"goat":20,"pro":30} },
-  "ornith/ornith-1.5-122b:free": { tier: "opensource", free: true },
   "poolside/laguna-s-2.1-free": { tier: "opensource", free: true },
   "Qwen/Qwen3.6-Max-Preview": { tier: "opensource", benchmark: {"intelligence":28.4}, free: false, allowance: {"goat":20,"pro":30} },
   "Qwen/Qwen3.6-Plus": { tier: "opensource", benchmark: {"intelligence":27}, contextTiers: [{"label":"Standard","context":"≤ 256K","rates":{"input":0.5,"output":3,"cacheRead":0.1,"cacheWrite":0}},{"label":"Long context","context":"> 256K","rates":{"input":2,"output":6,"cacheRead":0.2,"cacheWrite":0}}], free: false, allowance: {"goat":33,"pro":43} },
@@ -134,8 +132,6 @@ export const MODEL_DEALS: Readonly<Record<string, ModelDeals>> = {
   "xai/grok-4.5": { tier: "opensource", benchmark: {"intelligence":38.8}, free: false, allowance: {"goat":20,"pro":30} },
   "xai/grok-4.6": { tier: "opensource", benchmark: {"intelligence":44.3}, contextTiers: [{"label":"Standard","context":"≤ 200K","rates":{"input":2,"output":6,"cacheRead":0.5,"cacheWrite":0}},{"label":"Long context","context":"> 200K","rates":{"input":4,"output":12,"cacheRead":1,"cacheWrite":0}}], free: false, allowance: {"goat":20,"pro":30} },
   "xai/grok-4.7": { tier: "premium", benchmark: {"intelligence":46.4}, contextTiers: [{"label":"Standard","context":"≤ 200K","rates":{"input":2,"output":6,"cacheRead":0.5,"cacheWrite":0}},{"label":"Long context","context":"> 200K","rates":{"input":4,"output":12,"cacheRead":1,"cacheWrite":0}}], free: false, allowance: {"goat":20,"pro":30} },
-  "xiaomi/mimo-v2.5": { tier: "opensource", discount: {"pct":98}, was: {"input":0.8,"output":4,"cacheRead":0.16}, now: {"input":0.14,"output":0.28,"cacheRead":0.0028}, benchmark: {"intelligence":21.8}, free: false, allowance: {"goat":30,"pro":40} },
-  "xiaomi/mimo-v2.5-pro": { tier: "opensource", discount: {"pct":99}, was: {"input":2,"output":6,"cacheRead":0.4}, now: {"input":0.435,"output":0.87,"cacheRead":0.0036}, benchmark: {"intelligence":26}, free: false, allowance: {"goat":20,"pro":30} },
   "xiaomi/mimo-v2.6-flash": { tier: "opensource", benchmark: {"intelligence":37.9}, free: false, allowance: {"goat":20,"pro":30} },
   "xiaomi/mimo-v2.6-pro": { tier: "opensource", benchmark: {"intelligence":46.3}, free: false, allowance: {"goat":20,"pro":30} },
   "xiaomi/mimo-v2.6-pro-ultraspeed": { tier: "opensource", free: false, allowance: {"goat":10,"pro":20} },
@@ -169,5 +165,5 @@ export const PLAN_CATALOG: Readonly<Record<PlanId, PlanInfo>> = {
 }
 
 export const DEAL_SOURCE_URL = "https://commandcode.ai/docs/resources/pricing-limits"
-export const DEAL_LAST_REFRESHED = "2026-10-22"
+export const DEAL_LAST_REFRESHED = "2026-10-23"
 export const DEAL_PACKAGE_VERSION = "docs"

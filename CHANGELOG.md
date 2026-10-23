@@ -1,3 +1,40 @@
+## 2.2.14 - 2026-10-24
+
+**Chore — the catalog is refreshed to `command-code@1.88.0`.** The package
+drops `xiaomi/mimo-v2.5` and `xiaomi/mimo-v2.5-pro`, which 2.2.13 shipped
+core-only, so both leave the Snapshot and the last pending classification
+entries go with them. Every Snapshot model is now fully enriched again.
+
+### Model catalog
+
+- **FACTS_PACKAGE_VERSION**: `1.87.3` → `1.88.0`; membership 94 → 92.
+- `xiaomi/mimo-v2.5` and `xiaomi/mimo-v2.5-pro` left the package's `models.md`,
+  so both are pruned from the Snapshot, along with their costs and input
+  modalities in the facts module. The MiMo V2.6 family is untouched.
+- `moonshotai/Kimi-K3.1-Pro` is served by the listing API but not yet in
+  package membership — annotate-only, it does not ship.
+- The pinned slug map now reports `mimo-v2-5` and `mimo-v2-5-pro` as pending
+  alongside `ling-3-0-flash-sante-free`, `pixel-canary` and
+  `space-bunny-alpha` (pinned ids no longer in the Snapshot); 17 docs-ahead
+  page slugs stay unpinned.
+
+| Model                  | Change  | Before                      | After |
+| ---------------------- | ------- | --------------------------- | ----- |
+| `xiaomi/mimo-v2.5`     | removed | MiMo V2.5 · 1000000 ctx     | —     |
+| `xiaomi/mimo-v2.5-pro` | removed | MiMo V2.5 Pro · 1000000 ctx | —     |
+
+### Reasoning classification
+
+- `MODEL_REASONING_PENDING` is empty again: the two MiMo V2.5 models were its
+  only entries. All 92 Snapshot models are classified in
+  `MODEL_REASONING_CAPABILITY`; no classification changes.
+
+### Deals catalog
+
+- No changes — the MiMo V2.5 rows already left in 2.2.13, and every Snapshot
+  model has a deals record (92/92 covered).
+- Deals and RSC fixtures re-captured from the live docs pages.
+
 ## 2.2.13 - 2026-10-23
 
 **Chore — the catalog is refreshed to `command-code@1.87.3`, and the Max
